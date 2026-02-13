@@ -60,6 +60,7 @@ No GitHub Codespaces (ou qualquer Linux atual), instale o TeX Live com:
 ```bash
 sudo apt update
 sudo apt install --yes texlive-latex-recommended texlive-fonts-recommended texlive-latex-extra
+sudo apt-get install texlive-publishers texlive-lang-portuguese texlive-latex-extra texlive-fonts-recommended
 ```
 
 No Windows, instale o MiKTeX (https://miktex.org/download) e, após a instalação, abra o console do MiKTeX para garantir que `pdflatex` está no `PATH`. Isso garante que `pdflatex` esteja disponível tanto no terminal local quanto no Codespaces.
