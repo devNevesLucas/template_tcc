@@ -63,8 +63,8 @@
 % ---------------------------------------------------------------
 % INFORMAÇÕES DO DOCUMENTO
 % ---------------------------------------------------------------
-\titulo{Título do Trabalho de Conclusão de Curso}
-\autor{Nome Completo do Aluno}
+\titulo{Detecção de vazamentos de memória em C via Fluxo de Objetos: Abordagem baseada em HOFG Modificado}
+\autor{Lucas Zacarias Martins Neves}
 \local{São Paulo}
 \data{2025}
 \orientador{Prof. Nome do Orientador}
@@ -75,12 +75,12 @@
   \par
   Unidade Santo Amaro
   \par
-  Curso de [Nome do Curso]
+  Bacharelado em Ciência da computação
 }
 
 \tipotrabalho{Trabalho de Conclusão de Curso I}
 
-\preambulo{Proposta de Trabalho de Conclusão de Curso apresentado ao SENAC Santo Amaro como requisito parcial para aprovação na disciplina de TCC1 do curso de [Nome do Curso].}
+\preambulo{Proposta de Trabalho de Conclusão de Curso apresentado ao SENAC Santo Amaro como requisito parcial para aprovação na disciplina de TCC1 do curso de Ciência da computação.}
 
 % ---------------------------------------------------------------
 % COMPILA O ÍNDICE
@@ -117,12 +117,11 @@
 % RESUMO
 % ---------------------------------------------------------------
 \begin{resumo}
-Este documento apresenta a proposta inicial do Trabalho de Conclusão de Curso (TCC1) desenvolvido no SENAC Santo Amaro. O objetivo deste trabalho é [descrever brevemente o objetivo principal do TCC]. A justificativa para este estudo baseia-se em [descrever brevemente a justificativa]. A revisão bibliográfica abrange [mencionar os principais tópicos]. Como solução proposta, pretende-se [descrever brevemente a solução]. Este trabalho está organizado em três capítulos que apresentam a introdução ao tema, a revisão bibliográfica que fundamenta a pesquisa, o desenvolvimento com a solução proposta e o cronograma de trabalho, seguidos das referências bibliográficas.
 
 \vspace{\onelineskip}
 
 \noindent
-\textbf{Palavras-chave}: palavra1. palavra2. palavra3. palavra4. palavra5.
+\textbf{Palavras-chave}: Vazamento de memória, HOFG.
 \end{resumo}
 
 % ---------------------------------------------------------------
@@ -157,300 +156,59 @@ Este documento apresenta a proposta inicial do Trabalho de Conclusão de Curso (
 \chapter{Introdução}
 \label{cap:introducao}
 
-A introdução deve apresentar o tema do trabalho de forma clara e objetiva, situando o leitor no contexto da pesquisa. Neste capítulo, são apresentados o contexto no qual o problema se insere, a justificativa para a realização do estudo e os objetivos que norteiam o desenvolvimento do trabalho.
-
 % ---------------------------------------------------------------
-\section{Contexto}
-\label{sec:contexto}
-
-Apresente o cenário que originou o problema, ressaltando fatos, indicadores e lacunas identificadas na área de estudo. O contexto deve situar o leitor sobre o estado atual do tema, mostrando a relevância do assunto para a Computação e para a sociedade.
-
-Descreva o ambiente ou domínio em que o problema ocorre, utilizando dados e referências que comprovem a existência do problema. Explique quem são os principais afetados e quais são as consequências de não resolvê-lo.
-
-\vspace{0.3cm}
-\noindent\fbox{\parbox{\dimexpr\textwidth-2\fboxsep-2\fboxrule}{%
-\textbf{Orientação sobre citações (ABNT NBR 10520:2023)}
-
-\vspace{0.2cm}
-O aluno deve \textbf{priorizar citações indiretas} (paráfrases), nas quais a ideia do autor é reescrita com as próprias palavras. Citações diretas (transcrições literais) \textbf{não são recomendadas}, exceto quando o texto original for insubstituível --- por exemplo, definições consagradas, leis, normas técnicas ou trechos cuja reformulação alteraria o sentido.
-
-\vspace{0.2cm}
-\textbf{Citação indireta} (recomendada) --- o autor interpreta e reescreve a ideia:
-
-\vspace{0.1cm}
-\textit{Exemplo 1 --- sistema autor-data entre parênteses:}\\
-A definição clara do problema é considerada um fator determinante para o sucesso de qualquer pesquisa na área de Computação \cite{Wazlawick2020}.
-
-\vspace{0.1cm}
-\textit{Exemplo 2 --- autor como parte do texto:}\\
-Para \citeonline{Pressman2016}, a escolha de uma metodologia adequada impacta diretamente na qualidade dos resultados obtidos em projetos de software.
-
-\vspace{0.2cm}
-\textbf{Citação direta curta} (até 3 linhas, apenas quando indispensável) --- entre aspas, com indicação de página:
-
-\vspace{0.1cm}
-Segundo \citeonline[p.~42]{Wazlawick2020}, ``a formulação do problema deve ser expressa de forma clara, objetiva e delimitada, evitando ambiguidades que possam comprometer o escopo da pesquisa''.
-
-\vspace{0.2cm}
-\textbf{Citação direta longa} (mais de 3 linhas, apenas quando indispensável) --- recuo de 4\,cm, fonte menor, sem aspas:
-
-\begin{citacao}
-A revisão bibliográfica não consiste em simplesmente listar os trabalhos encontrados, mas em analisá-los criticamente, identificando convergências, divergências e lacunas que justifiquem a realização de uma nova pesquisa \cite[p.~87]{Wazlawick2020}.
-\end{citacao}
-
-\textbf{Resumo}: use citações indiretas como regra. Reserve a citação direta para casos excepcionais em que a transcrição literal seja realmente necessária.
-}}
 
 % ---------------------------------------------------------------
 \section{Justificativa}
-\label{sec:justificativa}
+\label{sec:Hipótese de pesquisa}
 
-Explicite por que resolver esse problema é importante. A justificativa deve abordar:
+A linguagem C tem aplicações no desenvolvimento de sistemas operacionais, sistemas embarcados, drivers, softwares de alta performance, dentre outros. Sendo uma linguagem
+que permite o desenvolvedor gerenciar a alocação de itens na memória heap, sem a implementação nativa de elementos tiram tal responsabilidade dos desenvolvedores, encontra como problemas principais os riscos incluindo a má gestão de ponteiros e vazamentos de memória.
 
-\begin{itemize}
-    \item \textbf{Relevância acadêmica}: como este trabalho contribui para o avanço do conhecimento na área;
-    \item \textbf{Relevância prática/profissional}: quais benefícios práticos a solução trará para usuários, organizações ou a sociedade;
-    \item \textbf{Lacuna identificada}: o que ainda não foi resolvido ou explorado suficientemente pelos trabalhos existentes.
-\end{itemize}
-
-Mostre que o trabalho não é apenas um texto sobre um tema popular, mas sim uma proposta que visa preencher uma lacuna real e contribuir de forma significativa para a área.
-
-% ---------------------------------------------------------------
-\section{Objetivo}
-\label{sec:objetivo}
-
-Os objetivos definem o que o trabalho pretende alcançar. Devem ser claros, mensuráveis e diretamente relacionados ao problema identificado.
-
-\subsection{Objetivo principal}
-
-O objetivo principal deve ser \textbf{único} e sintetizar o propósito central do trabalho em uma frase direta. Ele deve responder à pergunta: \textit{o que este trabalho pretende resolver ou alcançar?}
-
-Exemplo: \textit{Desenvolver um sistema web para gerenciamento de tarefas acadêmicas que permita aos estudantes organizar suas atividades de forma colaborativa.}
-
-\textbf{Dica}: utilize verbos no infinitivo como \textit{desenvolver}, \textit{analisar}, \textit{propor}, \textit{avaliar}, \textit{implementar}, \textit{comparar}, entre outros. Evite verbos vagos como \textit{estudar} ou \textit{entender}.
-
-\subsection{Objetivos secundários}
-
-Os objetivos secundários são desdobramentos do objetivo principal. Eles descrevem as etapas ou ações necessárias para atingir o objetivo principal. Devem ser mensuráveis e verificáveis.
-
-\begin{enumerate}
-    \item Realizar levantamento bibliográfico sobre [tema específico];
-    \item Identificar e analisar os requisitos do sistema/solução proposta;
-    \item Projetar a arquitetura da solução com base nos requisitos levantados;
-    \item Implementar um protótipo funcional da solução proposta;
-    \item Validar a solução por meio de [testes, métricas, estudo de caso, etc.].
-\end{enumerate}
-
-\textbf{Atenção}: cada objetivo secundário deve contribuir diretamente para o alcance do objetivo principal. Evite listar objetivos que não tenham relação clara com o problema.
-
+Mesmo com a existência de linguagens de programação como Rust, sendo focado em segurança, existem projetos que apresentariam custos excessivos para portabilidade entre as linguagens, fazendo com que seja necessário o uso da linguagem original do desenvolvimento, como o C, neste caso. 
+Com isso, para garantir maior segurança de tais projetos, um analisador de código pode ser desenvolvido como uma das soluções, com foco em encontrar potenciais vazamentos e problemas provenientes da má gestão de itens armazenados na memória. 
 % ===============================================================
 % CAPÍTULO 2 - REVISÃO BIBLIOGRÁFICA
 % ===============================================================
 \chapter{Revisão Bibliográfica}
 \label{cap:revisao}
-
-A revisão bibliográfica tem como finalidade apresentar o embasamento teórico do trabalho, demonstrando o conhecimento do autor sobre o tema e identificando o estado da arte. Este capítulo deve ser organizado por conceitos e temas, construindo uma linha de argumentação que sustente a proposta do trabalho.
-
 % ---------------------------------------------------------------
 \section{Referencial teórico}
 \label{sec:referencial}
-
-Apresente os principais conceitos, teorias e definições que fundamentam o trabalho. O referencial teórico deve fornecer ao leitor a base necessária para compreender o problema e a solução proposta.
-
-Organize esta seção por temas ou conceitos, não por autor. Cada subseção deve abordar um conceito relevante, explicando-o e relacionando-o ao contexto do trabalho.
-
-Por exemplo: se o trabalho envolve desenvolvimento web, aborde conceitos como arquitetura cliente-servidor, APIs REST, padrões de projeto, etc. Se envolve inteligência artificial, explique os algoritmos e técnicas que serão utilizados.
-
-Utilize citações para fundamentar cada conceito apresentado. Segundo \citeonline{Wazlawick2020}, o referencial teórico deve demonstrar que o autor domina os fundamentos necessários para conduzir a pesquisa.
 
 % ---------------------------------------------------------------
 \section{Metodologia da pesquisa bibliográfica}
 \label{sec:metodologia_pesquisa}
 
-Descreva como a pesquisa bibliográfica foi conduzida, incluindo:
-
-\begin{itemize}
-    \item \textbf{Bases de dados consultadas}: Google Scholar, IEEE Xplore, ACM Digital Library, SciELO, Periódicos CAPES, entre outras;
-    \item \textbf{Palavras-chave utilizadas}: liste os termos de busca em português e inglês;
-    \item \textbf{Critérios de inclusão e exclusão}: quais critérios foram usados para selecionar ou descartar trabalhos (período, idioma, relevância, tipo de publicação);
-    \item \textbf{Período de abrangência}: intervalo de anos das publicações consultadas.
-\end{itemize}
-
-Exemplo de descrição:
-
-\textit{A pesquisa bibliográfica foi realizada nas bases Google Scholar, IEEE Xplore e ACM Digital Library, utilizando as palavras-chave ``machine learning'', ``classificação de texto'' e ``processamento de linguagem natural''. Foram selecionados artigos publicados entre 2018 e 2025, em português e inglês, que abordassem diretamente técnicas de classificação automática de documentos.}
-
+Design Science Research
 % ---------------------------------------------------------------
+
+\section{Métricas de Avaliação}
+\label{sec:metricas_de_avaliacao}
+
 \section{Fundamentos}
 \label{sec:fundamentos}
-
-Aprofunde os conceitos técnicos que serão utilizados na solução proposta. Diferentemente do referencial teórico (que apresenta conceitos gerais), os fundamentos devem detalhar as tecnologias, algoritmos, frameworks ou metodologias específicas que serão empregados no desenvolvimento.
-
-Por exemplo:
-\begin{itemize}
-    \item Se o trabalho utiliza aprendizado de máquina, explique os algoritmos escolhidos (árvores de decisão, redes neurais, SVM, etc.);
-    \item Se o trabalho envolve desenvolvimento de software, descreva as tecnologias (linguagens, frameworks, bancos de dados);
-    \item Se envolve análise de dados, explique as métricas e técnicas estatísticas que serão aplicadas.
-\end{itemize}
-
-Utilize figuras, diagramas e tabelas para ilustrar conceitos quando apropriado.
 
 % ---------------------------------------------------------------
 \section{Trabalhos relacionados}
 \label{sec:trabalhos_relacionados}
 
-Apresente até \textbf{3 trabalhos} que \textbf{compartilhem o mesmo foco de resolução de problema} que o seu. O critério principal de seleção é: os trabalhos escolhidos devem ter tentado resolver o \textbf{mesmo problema} (ou um problema muito próximo) ao que você está propondo resolver. Não basta que o trabalho aborde o mesmo tema ou utilize a mesma tecnologia --- ele deve ter enfrentado o mesmo desafio prático ou teórico.
+O analisador será avaliado a partir do Juliet Test Suite, sendo um conjunto de casos da linguagem C que exploram as suas vulnerabilidades. O resultado obtido será comparado com os resultados de analisadores e algoritmos desenvolvidos que possuem como finalidade o mesmo objetivo, ou seja, de garantir a segurança dos projetos. O principal analisador a ser comparado é o HOFG-Analyser, sendo a aplicação original da representação de programas.
 
-\textbf{Por que esse critério é importante?} Ao selecionar trabalhos que atacam o mesmo problema, você demonstra que:
-\begin{itemize}
-    \item O problema é relevante e já foi reconhecido por outros pesquisadores;
-    \item Existem soluções anteriores, mas com limitações que o seu trabalho pretende superar;
-    \item Seu trabalho não é uma repetição, mas um avanço em relação ao que já foi feito.
-\end{itemize}
-
-Para cada trabalho relacionado, descreva:
-\begin{enumerate}
-    \item \textbf{Qual problema} o trabalho tentou resolver (e por que é o mesmo problema que o seu);
-    \item A metodologia ou abordagem utilizada para resolvê-lo;
-    \item Os principais resultados obtidos;
-    \item As limitações identificadas na solução proposta;
-    \item Como o \textbf{seu trabalho se diferencia} ou avança em relação a ele.
-\end{enumerate}
-
-\subsection{Trabalho 1: [Título do trabalho]}
-
-\citeonline{Silva2022} abordou o problema de [descrever o problema --- deve ser o mesmo ou muito similar ao seu]. Para resolvê-lo, os autores propuseram [descrever a solução]. A metodologia utilizada foi [descrever]. Os resultados mostraram que [descrever]. No entanto, a solução apresenta limitações como [descrever as lacunas que permanecem]. O presente trabalho diferencia-se por [explicar como sua proposta avança na resolução do mesmo problema].
-
-\subsection{Trabalho 2: [Título do trabalho]}
-
-[Descrever o segundo trabalho seguindo a mesma estrutura acima, sempre evidenciando que o problema abordado é o mesmo ou muito próximo ao seu.]
-
-\subsection{Trabalho 3: [Título do trabalho]}
-
-[Descrever o terceiro trabalho seguindo a mesma estrutura acima, sempre evidenciando que o problema abordado é o mesmo ou muito próximo ao seu.]
-
-\vspace{0.5cm}
-
-Uma tabela comparativa ajuda a sintetizar as diferenças entre os trabalhos:
-
-\begin{table}[htb]
-    \centering
-    \caption{Comparação entre trabalhos relacionados}
-    \label{tab:trabalhos_relacionados}
-    \begin{tabular}{l|c|c|c|c}
-        \toprule
-        \textbf{Critério} & \textbf{Trabalho 1} & \textbf{Trabalho 2} & \textbf{Trabalho 3} & \textbf{Este trabalho} \\
-        \midrule
-        Objetivo           & [resumo]   & [resumo]   & [resumo]   & [resumo] \\
-        \midrule
-        Tecnologia         & [tecn.]    & [tecn.]    & [tecn.]    & [tecn.] \\
-        \midrule
-        Validação          & [método]   & [método]   & [método]   & [método] \\
-        \midrule
-        Limitação          & [limit.]   & [limit.]   & [limit.]   & --- \\
-        \bottomrule
-    \end{tabular}
-    \legend{Fonte: Elaborado pelo autor (2025)}
-\end{table}
 
 % ===============================================================
 % CAPÍTULO 3 - DESENVOLVIMENTO
 % ===============================================================
 \chapter{Desenvolvimento}
 \label{cap:desenvolvimento}
-
-Neste capítulo, apresenta-se a solução proposta para o problema identificado, bem como o cronograma de trabalho previsto para o desenvolvimento completo do projeto no TCC2.
-
 % ---------------------------------------------------------------
 \section{Solução proposta}
 \label{sec:solucao}
-
-Descreva detalhadamente a solução que será desenvolvida para resolver o problema apresentado na introdução. A descrição deve incluir:
-
-\begin{itemize}
-    \item \textbf{Visão geral da solução}: o que será desenvolvido (sistema, aplicativo, modelo, ferramenta, etc.);
-    \item \textbf{Arquitetura}: como os componentes da solução se organizam e interagem;
-    \item \textbf{Tecnologias e ferramentas}: quais linguagens, frameworks, bibliotecas, bancos de dados e ambientes serão utilizados, e por que foram escolhidos;
-    \item \textbf{Funcionalidades principais}: o que a solução fará para atender aos objetivos;
-    \item \textbf{Metodologia de desenvolvimento}: qual abordagem será utilizada (ágil, cascata, prototipação, etc.);
-    \item \textbf{Critérios de validação}: como será medido o sucesso da solução (métricas, testes, avaliação com usuários, etc.).
-\end{itemize}
-
-Utilize diagramas, fluxogramas ou mockups para ilustrar a solução. Exemplo de descrição de arquitetura:
-
-\textit{A solução proposta consiste em uma aplicação web composta por três camadas: front-end desenvolvido em React.js, back-end em Node.js com Express, e banco de dados PostgreSQL. A comunicação entre front-end e back-end será feita por meio de uma API REST.}
 
 % ---------------------------------------------------------------
 \section{Cronograma de trabalho}
 \label{sec:cronograma}
 
-O cronograma a seguir apresenta, no formato de diagrama de Gantt, as atividades previstas para o desenvolvimento do TCC2, distribuídas ao longo das semanas do semestre.
-
-\begin{figure}[htb]
-    \centering
-    \caption{Cronograma de atividades -- Diagrama de Gantt}
-    \label{fig:gantt}
-    \begin{ganttchart}[
-        hgrid,
-        vgrid,
-        x unit=0.72cm,
-        y unit title=0.6cm,
-        y unit chart=0.7cm,
-        title height=1,
-        bar height=0.5,
-        bar label font=\scriptsize,
-        title label font=\small,
-        milestone label font=\scriptsize\itshape,
-        group label font=\scriptsize\bfseries,
-        bar/.append style={fill=blue!40},
-        group/.append style={draw=black, fill=blue!70},
-        milestone/.append style={fill=red!70},
-    ]{1}{16}
-        % Título: semanas de 1 a 16
-        \gantttitle{Semanas}{16} \\
-        \gantttitlelist{1,...,16}{1} \\
-
-        % Grupo 1: Revisão e Planejamento
-        \ganttgroup{Fase 1: Planejamento}{1}{4} \\
-        \ganttbar{Revisão bibliográfica}{1}{3} \\
-        \ganttbar{Definição de requisitos}{2}{4} \\
-        \ganttbar{Projeto da arquitetura}{3}{4} \\
-        \ganttmilestone{Entrega do projeto}{4} \\
-
-        % Grupo 2: Desenvolvimento
-        \ganttgroup{Fase 2: Desenvolvimento}{5}{11} \\
-        \ganttbar{Implementação do módulo 1}{5}{7} \\
-        \ganttbar{Implementação do módulo 2}{7}{9} \\
-        \ganttbar{Integração dos módulos}{9}{11} \\
-        \ganttmilestone{Protótipo funcional}{11} \\
-
-        % Grupo 3: Testes e Finalização
-        \ganttgroup{Fase 3: Validação}{12}{16} \\
-        \ganttbar{Testes e validação}{12}{14} \\
-        \ganttbar{Ajustes e correções}{14}{15} \\
-        \ganttbar{Redação final do TCC2}{13}{16} \\
-        \ganttmilestone{Entrega final}{16}
-
-        % Ligações entre atividades
-        \ganttlink{elem2}{elem3}
-        \ganttlink{elem3}{elem4}
-        \ganttlink{elem4}{elem5}
-        \ganttlink{elem7}{elem8}
-        \ganttlink{elem8}{elem9}
-        \ganttlink{elem9}{elem10}
-        \ganttlink{elem12}{elem13}
-    \end{ganttchart}
-    \legend{Fonte: Elaborado pelo autor (2025)}
-\end{figure}
-
-\textbf{Instruções para personalização do cronograma}:
-\begin{itemize}
-    \item Ajuste o número de semanas conforme o calendário acadêmico do semestre;
-    \item Modifique as atividades de acordo com as etapas do seu projeto;
-    \item Os marcos (\textit{milestones}) indicam entregas importantes --- adapte-os às datas de avaliação;
-    \item As setas entre atividades indicam dependências --- uma atividade só inicia após a conclusão da anterior;
-    \item Utilize o diagrama como ferramenta de acompanhamento: atualize-o a cada reunião com o orientador.
-\end{itemize}
 
 % ---------------------------------------------------------------
 % ELEMENTOS PÓS-TEXTUAIS
