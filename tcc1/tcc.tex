@@ -63,7 +63,7 @@
 % ---------------------------------------------------------------
 % INFORMAÇÕES DO DOCUMENTO
 % ---------------------------------------------------------------
-\titulo{Detecção de vazamentos de memória em C via Fluxo de Objetos: Abordagem baseada em HOFG Modificado}
+\titulo{Detecção de vulnerabilidades de memória em C: Abordagem integrando VSA e HOFG}
 \autor{Lucas Zacarias Martins Neves}
 \local{São Paulo}
 \data{2025}
@@ -155,6 +155,22 @@
 % ===============================================================
 \chapter{Introdução}
 \label{cap:introducao}
+
+\section{Objetivos}
+\label{sec:Objetivos}
+
+\subsection{Objetivo geral}
+
+O objetivo principal do trabalho é implementar um analisador estático de código para a linguagem C, com foco na detecção de vulnerabilidades de memória, através da integração da representação Heap Object Flow Graph (HOFG) com técnicas de Value-Set Analysis (VSA) para o rastreamento preciso de ponteiros (offset e range).
+
+\subsection{Objetivos específicos}
+
+\begin{enumerate}
+    \item Fundamentar teoricamente a integração do Value-Set analysis à estrutura do Heap Object Flow Graph (HOFG), demonstrando como essa abordagem conjunta pode mitigar as limitações de rastreamento de ponteiros e reduzir a taxa de falsos positivos da análise estática.
+    \item Implementar motor de análise estática processando a representação intermediária LLVM IR, construindo os algoritmos necessários para a extração e geração do HOFG e sua integração com o VSA.
+    \item Avaliar a precisão e a eficiência do analisador implementado utilizando conjuntos de testes que exploram falhas da linguagem C (como vazamentos de memória e usos após desalocação). 
+    \item Comparar os resultados obtidos com referências comparativas tendo como foco principal a taxa de falsos positivos e verdadeiro positivos, e comparar o tempo e custo computacional da implementação original do HOFG, para validar o impacto da integração.
+\end{enumerate}
 
 % ---------------------------------------------------------------
 
