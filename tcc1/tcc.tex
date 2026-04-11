@@ -121,7 +121,7 @@
 \vspace{\onelineskip}
 
 \noindent
-\textbf{Palavras-chave}: Vazamento de memória, HOFG.
+\textbf{Palavras-chave}: Vazamento de memória, HOFG, VSA.
 \end{resumo}
 
 % ---------------------------------------------------------------
@@ -156,14 +156,64 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
+\section{Contexto}
+\label{cap:Contexto}
+
+Em um levantamento realizado pela Microsoft Security Response Center (MSRC) realizado em 2019,
+foi acurado que aproximadamente 70% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
+tem ligação a falhas de segurança de memória nas linguagens C e C++, causadas por desenvolvedores que inseriram tais erros em seus códigos
+sem perceber. Além disso, a situação teve piora não somente com o incremento da base de código da empresa, mas também com a adição de mais 
+código aberto aos seus projetos.
+\par
+É pontuado ainda pela Microsoft que existem métodos para auxiliar os desenvolvedores a desenvolver código seguro, 
+tais métodos variam desde ferramentas e algoritmos desenvolvidos para análise do próprio código escrito até a guias e metodologias de desenvolvimento para software seguro, 
+treinamentos internos, reuniões para monitoria e análise de código. Salvaguardas que atuam em todas as camadas do desenvolvimento de software, 
+e mesmo com tais itens, tais vulnerabilidades de memória continuam predominantes.
+\par
+Dando destaque às ferramentas de análise de código estático, por vezes exigem tempo para que os desenvolvedores aprendam a fazer uso do analisador, 
+cenário este que torna o uso de tais ferramentas algo inviável quando o tempo não é aliado. Além disso, tais ferramentas não garantem que todas 
+as vulnerabilidades e possíveis falhas de um código sejam encontradas, pois focam numa análise do código fonte do software, sendo escrito numa linguagem de alto nível e 
+não na linguagem de máquina gerada pelo compilador que será executada pelo hardware (Balakrishnan et al., 2010).
+\par
+Além de métodos de código estático, outra opção também pontuada pela MSRC para a diminuição de ocorrências, seria o uso de linguagens de programação memory-safe, ou seja,
+que retiram das mãos de desenvolvedores os ônus de preocupações com segurança de memória e a adicionam na própria linguagem, 
+fazendo gerenciamento de memória ou empregando regras estritas na fase de compilação, evitando tais vulnerabilidades.
+Um exemplo de linguagem de programação memory-safe é o Rust, sendo desenvolvido pela Mozilla e que tem como um de seus princípios a segurança de memória.
+
+\section{Justificativa}
+\label{sec:Justificativa}
+
+Mesmo com a existência de linguagens de programação como Rust, sendo focado em segurança, existem projetos que apresentariam custos excessivos para portabilidade entre as linguagens, 
+fazendo com que seja necessário o uso da linguagem original do desenvolvimento, como o C, neste caso. Com isso, para garantir maior segurança de tais projetos, um analisador de código 
+pode ser desenvolvido como uma das soluções, com foco em encontrar potenciais vazamentos e problemas provenientes da má gestão de itens armazenados na memória.
+
+\section{Hipótese}
+\label{sec:Hipotese}
+
+A hipótese do projeto esta numa integração entre dois métodos de análise estática. 
+\par
+O primeiro método é o Heap Object Flow Graph (HOFG) (Madhav C, et al., 2023), sendo uma representação do fluxo dos blocos de memória alocados na Heap, na qual os vértices do grafo são obtidos 
+a partir das variáveis do programa que são ponteiros para a memória Heap. A partir do HOFG foi desenvolvido o HOFG-Analyser, uma ferramenta que utiliza o código fonte convertido para o formato HOFG 
+para verificar vulnerabilidades de memória.
+\par
+Porém, o HOFG-Analyser obteve 14% de falsos positivos em seus testes, apresentando dificuldades com aritmética de ponteiros presente na linguagem C. 
+Para lidar com as dificuldades presentes pela aritmética de ponteiros e ser possível diminuir a taxa de falsos positivos do HOFG original, 
+uma integração com o Value-Set Analysis (VSA) (Balakrishnan, 2007) poderia ser realizada. O VSA, técnica de interpretação abstrata originalmente aplicada para análise de executáveis, 
+tem o objetivo de encontrar uma aproximação segura para o conjunto de valores que cada objeto de dados pode armazenar em cada ponto de um programa. 
+\par
+Ao integrar VSA ao HOFG, seria possível acompanhar o endereço abstrato dos objetos alocados na memória Heap, bem como estimar limites de intervalos que tais endereços podem assumir, 
+permitindo assim acompanhar as mudanças de estado dos objetos com mais profundidade, encontrando atribuições que possam, por sua vez, gerar vulnerabilidades de memória.
+
 \section{Objetivos}
 \label{sec:Objetivos}
 
 \subsection{Objetivo geral}
+\label{sec:Objetivo_geral}
 
 O objetivo principal do trabalho é implementar um analisador estático de código para a linguagem C, com foco na detecção de vulnerabilidades de memória, através da integração da representação Heap Object Flow Graph (HOFG) com técnicas de Value-Set Analysis (VSA) para o rastreamento preciso de ponteiros (offset e range).
 
 \subsection{Objetivos específicos}
+\label{sec:Objetivos_especificos}
 
 \begin{enumerate}
     \item Fundamentar teoricamente a integração do Value-Set analysis à estrutura do Heap Object Flow Graph (HOFG), demonstrando como essa abordagem conjunta pode mitigar as limitações de rastreamento de ponteiros e reduzir a taxa de falsos positivos da análise estática.
@@ -174,15 +224,6 @@ O objetivo principal do trabalho é implementar um analisador estático de códi
 
 % ---------------------------------------------------------------
 
-% ---------------------------------------------------------------
-\section{Justificativa}
-\label{sec:Hipótese de pesquisa}
-
-A linguagem C tem aplicações no desenvolvimento de sistemas operacionais, sistemas embarcados, drivers, softwares de alta performance, dentre outros. Sendo uma linguagem
-que permite o desenvolvedor gerenciar a alocação de itens na memória heap, sem a implementação nativa de elementos tiram tal responsabilidade dos desenvolvedores, encontra como problemas principais os riscos incluindo a má gestão de ponteiros e vazamentos de memória.
-
-Mesmo com a existência de linguagens de programação como Rust, sendo focado em segurança, existem projetos que apresentariam custos excessivos para portabilidade entre as linguagens, fazendo com que seja necessário o uso da linguagem original do desenvolvimento, como o C, neste caso. 
-Com isso, para garantir maior segurança de tais projetos, um analisador de código pode ser desenvolvido como uma das soluções, com foco em encontrar potenciais vazamentos e problemas provenientes da má gestão de itens armazenados na memória. 
 % ===============================================================
 % CAPÍTULO 2 - REVISÃO BIBLIOGRÁFICA
 % ===============================================================
@@ -191,6 +232,159 @@ Com isso, para garantir maior segurança de tais projetos, um analisador de cód
 % ---------------------------------------------------------------
 \section{Referencial teórico}
 \label{sec:referencial}
+
+\subsection{Memória Heap}
+\label{sec:HEAP}
+
+A memória Heap é uma área da memória virtual de um processo utilizada para a alocação dinâmica de memória. Tal região tem início logo após a área de dados não inicializados do programa e cresce para cima, 
+em direção a endereços de memória mais altos. Para cada processo, o kernel mantém uma variável brk (sendo pronunciada break, ou quebra) que aponta para o topo da Heap. 
+Um alocador dinâmico gerencia a Heap como uma coleção de blocos de tamanhos variados. Cada bloco é um segmento (chunk) contínuo de memória virtual que pode estar em dois estados: alocado ou livre. 
+Um bloco alocado é reservado para uso de forma explícita pela aplicação, permanecendo neste estado até que seja liberado, tanto de forma explícita, pelo aplicativo, quanto de forma implícita, pelo próprio alocador de memória (como em sistemas com Garbage Collection). 
+E, por sua vez, um bloco livre está disponível para ser alocado, e permanecesse assim até que, de forma explícita, seja alocado atráves de uma nova requisição de alocação feita pela aplicação. O fato de que, por vezes, o tamanho exato de certas estruturas de dados que 
+serão utilizados em um programa só se tornam conhecidos até que o mesmo seja executado se torna o principal motivo para a utilização da alocação dinâmica de memória e, consequentemente, da memória Heap.
+
+\subsection{Análise estática}
+
+\par
+A análise estática é uma técnica para obter informações sobre o comportamento em tempo de execução de um programa, porém sem a necessidade de executar o programa. Isso ocorre pois os métodos de análise estática exploram o 
+comportamento do programa a partir de abstrações e aproximações para mapear o espaço de estados do programa, dessa forma detectando comportamentos tais como vulnerabilidades e fluxos inválidos para qualquer entrada possível.
+
+\subsubsection{Árvore sintática abstrata (AST)}
+
+Segundo Aho et al. (2006), as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, possuem para uma expressão, cada nó interno de uma expressão representa um operador, enquanto os seus nós filhos representam os respectivos operandos. 
+Além disso, as ASTs se assemelham às árvores de derivação até certo nível, diferenciando-se pelo fato de que os nós interiores da AST representam construções de programação, ao passo que na árvore de derivação os nós 
+interiores representam símbolos não-terminais. Outra diferença é a ausência de símbolos não-terminais auxiliares, tais como aqueles que representam termos, fatores, ou outras variações de expressões, na AST. 
+Essa falta ocorre pois tais detalhes sintáticos são desnecessários para a fase de tradução, resultando em uma representação mais condensada e focada na semântica do código fonte.
+
+\subsubsection{Forma de atribuição única estática (SSA)}
+
+O SSA (Static Single Assignment) é uma forma de representação de código intermediário, tem como ponto chave as características de que cada definição de variável possui um nome distinto, e de que cada uso refere-se a apenas uma única definição, 
+sendo essas também as duas restrições da representação, significando que, caso um programa atenda tais restrições, tal programa estará em sua forma SSA. Para garantir essa singularidade, variáveis que sofrem múltiplas atribuições no código-fonte são renomeadas, 
+sendo criadas versões distintas para cada nova atribuição (por exemplo, v1, v2, v3). 
+\par
+Além disso, em programas com desvios do fluxo de controle, contendo blocos condicionais e laços de repetição, diferentes versões da mesma variável podem chegar ao mesmo ponto de convergência no 
+Grafo de Fluxo de Controle (CFG). São inseridas então, nesses pontos de junção, as chamadas funções (phi functions), possuindo N argumentos correspondentes aos N caminhos do fluxo de controle convergentes, 
+e seleciona a versão correta da variável com base no caminho de execução tomado pelo programa. Sendo criada inicialmente para facilitar o desenvolvimento de transformações de programa de alto nível, 
+a forma ganhou popularidade pelas suas propriedades que permitem a simplificação de algoritmos e a redução da complexidade computacional das análises de fluxo de dados. Atualmente, 
+é amplamente utilizada por compiladores de código aberto e comerciais, como é o caso do LLVM, sendo uma estrutura fundamental para a análise estática de programas
+
+\subsubsection{Value-Set Analysis}
+
+O Value-Set Analysis (VSA) é uma técnica de interpretação abstrata de código executável, que tem como objetivo encontrar uma aproximação segura para o conjunto de valores que cada objeto de 
+dados pode armazenar em cada ponto de um programa (Balakrishnan, 2007). O VSA possui similaridades com o problema de análise de ponteiros (pointer-analysis), frequentemente estudado em análises de 
+programas escritos em linguagens de alto nível. Enquanto a análise de ponteiros tradicional determina uma sobreaproximação (over-approximation) de conjunto de variáveis cujos endereços uma determinada variável 
+pode conter, o VSA atua determinando uma sobreaproximação do conjunto de endereços que cada objeto de dados pode conter em cada ponto do programa. 
+\par
+Como consequência, os resultados do VSA podem ser utilizados para 
+identificar quais a-locs (abstract locations) estão contidos nos endereços de um determinado a-loc. Por outro lado, o VSA também possui características de análises estáticas numéricas. Além de rastrear endereços, 
+o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que cada objeto de dados pode assumir ao longo da execução.
+
+\subsubsection{Incompletude da análise estática}
+
+Os métodos de análise estática não garantem que todas as vulnerabilidades de um código sejam encontradas. Dentre os motivos, sendo listados por Balakrishnan em 2007, estão:
+
+\begin{itemize}
+\item 
+O uso de bibliotecas já compiladas (tais como as DLLs) em programas, por vezes sem estar disponíveis em sua forma fonte. Gerando a necessidade de realizar esboços 
+que simulam os efeitos das chamadas de função de tais bibliotecas. Por não poder realizar a análise em tais bibliotecas, é possível que a mesma possua erros, não sendo detectados durante a 
+análise estática sendo realizada, resultando em inconsistências.
+\item
+O fato de que códigos fonte são modificados pelo compilador durante a compilação, realizando otimizações e adicionando instrumentações de código, sendo itens não encontrados pelas 
+ferramentas que analisam tais códigos.
+\item 
+O código fonte de um programa pode ser escrito em mais de uma linguagem de programação, tornando mais dificultosa o design de tais ferramentas de análise, pois precisam dar suporte a 
+múltiplas linguagens de programação, cada uma contendo suas características e peculiaridades.
+\item
+E, mesmo em um código fonte escrito em apenas uma linguagem de programação de alto nível, tal código pode conter código escrito em assembly em certos locais. 
+Ferramentas de análise estática normalmente ignoram o código assembly adicionado, ou não levam a análise além do código assembly adicionado.
+\end{itemize}
+
+\subsection{LLVM}
+
+Segundo Lattner e Adve (2004), o LLVM é uma infraestrutura de compilação designada para prover transparência e análise e transformação de programas de forma persistente 
+durante todo o seu ciclo de vida. O sistema é fundamentado em uma representação intermediária (IR) de baixo nível, baseada na sua forma SSA, permitindo uma ponte universal entre diferentes linguagens 
+e arquiteturas. A arquitetura introduz recursos fundamentais para a análise de código:
+
+\begin{itemize}
+\item
+Um simples sistema de tipagem independente de linguagem que expõe os tipos primitivos usados comumente para implementar atributos de linguagens de alto nível.
+\item 
+Instrução para endereçamento aritmético, sendo diferente do C puro, o LLVM utiliza uma instrução específica para cálculos de ponteiros que preserva informações de tipo e limites de estruturas, sendo essencial para detectar acessos inválidos.
+\item
+Mecanismo uniforme de exceções, utilizado para implementar recursos de tratamento de exceções comumente encontrados em linguagens de alto nível de forma eficiente. 
+\end{itemize}
+
+\subsubsection{Implementação do Design de três fases}
+
+Num compilador moderno, três componentes principais são aplicados, sendo eles:
+
+\begin{itemize}
+\item
+O front end, responsável por analisar o código fonte, chegar erros e construir a árvore de sintaxe abstrata (AST) específica para a linguagem em questão.
+\item
+O otimizador, responsável por realizar transformações de código numa tentativa de melhorar o tempo de execução do código, realizando, por exemplo, remoções de itens redundantes que seriam computados.
+\item
+O back end, também conhecido como o gerador de código. Responsável por mapear o código para o conjunto de instruções da arquitetura alvo. Dentre os itens comumente encontrados no back end, estão inclusos a seleção de instruções, alocação de registradores e o escalonamento de instruções.
+\end{itemize}
+
+\par 
+Com tal padrão a portabilidade de um compilador para uma nova linguagem de programação fonte gera a necessidade de implementação do novo front end, mas permitindo que o otimizador e o back end sejam reutilizados. 
+Porém, esse benefício não fora alcançado em todos os casos já que implementações do padrão de três fases, numa época em que o LLVM estava tendo seu início, em linguagens como Perl, Python, Ruby e Java não 
+compartilhavam código entre si, ou seja, cada uma destas linguagens possuía sua própria implementação de front end, otimizador e back end.
+
+\subsubsection{Representação Intermediária (LLVM IR)}
+
+A representação intermediária é o aspecto principal do LLVM, sendo a forma que compilador utiliza para representar o código fonte sendo compilado. É designada para análises de nível intermediário e 
+transformações que são encontradas no setor de otimização de um compilador. Desenhada com objetivos de adicionar suporte para otimizações em tempo de execução não custosas, otimizações interprocedurais, 
+análise completa do programa, transformações abrangendo nível de reestruturação, dentre outros, tem como aspecto mais importante o fato de ser definida como uma linguagem de primeira classe com semântica bem definida, 
+tendo seu conjunto de instruções próximo do padrão RISC e possuindo como um de seus pilares a forma SSA (Single Static Assignment).
+\par 
+Sendo a única interface para o otimizador do LLVM, se torna o único requisito para escrever um front end para a infraestrutura. Por possuir uma forma textual legível, desenvolver um front end que tem como saída 
+a representação intermediária do LLVM se torna algo possível e viável. Tal característica é um dos principais fatores para a disseminação da infraestrutura do LLVM em diferentes aplicações, 
+já que a completude presente na representação permite que o suporte de uma nova linguagem seja simplificado.
+
+\subsection{Vulnerabilidades de memória}
+
+Segundo o Microsoft Security Response Center (MSRC) (2019), entre o período de 2004 a 2018 aproximadamente 70% das vulnerabilidades corrigidas mapeadas a um CVE foram causadas por desenvolvedores 
+que de forma desavisada adicionaram problemas relacionados a vulnerabilidades de memória em seus códigos escritos nas linguagens C e C++. Além disso, a medida que a base de código da Microsoft era incrementada e 
+mais código aberto era utilizado, tal problema continuava a aumentar.
+
+\subsubsection{Common Weakness Enumeration (CWE)}
+A Common Weakness Enumeration (CWE) consiste em uma lista desenvolvida de forma colaborativa, que relaciona fraquezas recorrentes em software e hardware. No contexto de segurança, 
+uma fraqueza (weakness) é uma condição num software, firmware, hardware, ou serviço que, a partir de certas circunstâncias, pode contribuir para a introdução de vulnerabilidades. Fraquezas são identificadas, 
+classificadas, descritas e integradas à lista oficial da CWE (CWE List). A compreensão dessas fraquezas que resultam em vulnerabilidades permite que desenvolvedores de software, designers de hardware, 
+e arquitetos de segurança atuem na mitigação e eliminação de tais fraquezas ainda nas fases iniciais do ciclo de desenvolvimento. 
+\par
+A lista CWE é atualizada de três a quatro vezes por ano, incluindo novas descobertas e atualizando itens registrados anteriormente. Antes da publicação oficial, o conteúdo em desenvolvimento é 
+disponibilizado e pode ser acompanhado através do CWE Content Development Repository (CDR), sendo um repositório público com objetivo de garantir transparência e colaboração da comunidade, viabilizando a 
+submissão de novas fraquezas, contribuições para registros existentes e acompanhamento das operações internas da CWE.
+
+\subsubsection{CWE-401}
+Conforme a Open Web Application Security Project (OWASP, 2026), um vazamento de memória é uma forma não intencionada de consumo de memória, ocorrendo quando o desenvolvedor falha em liberar um bloco de memória alocada quando a mesma não é mais necessária. Sendo dividido, 
+de forma geral, em três cenários:
+
+\begin{itemize}
+\item 
+Aplicações de curta duração (Short Lived User-Land Application), tendo pouco ou nenhum impacto notável, levando em consideração que sistemas operacionais modernos obtém a memória perdida após o programa ser encerrado.
+\item
+Aplicações de longa duração (Long Lived User-Land Application), tendo riscos potenciais já que tais programas continuam perdendo memória ao longo do tempo, causando, eventualmente, o consumo integral dos recursos da memória RAM.
+\item 
+Processos em nível de núcleo (Kernel-land Process), sendo o caso com nível mais alto de consequências, trazendo vazamentos de memória a nível de Kernel, gerando problemas de estabilidade voltados ao sistema.
+\end{itemize}
+
+\subsubsection{CWE-415}
+
+Com o título de liberação dupla (double free), ocorre quando o mesmo endereço de memória é liberado mais de uma vez. Isso acontece pois, quando o programa chama a função de liberação 
+(como a função free() da biblioteca stdlib, na linguagem C) utilizando o mesmo endereço de memória como argumento, a estrutura de dados responsável por gerenciar a heap pode ser corrompida, permitindo assim que um 
+usuário malicioso escreva em posições arbitrárias de memória. O impacto de tal corrupção pode causar desde a falha abrupta do programa até a alteração do fluxo de execução. 
+Ao sobrescrever registradores ou endereços específicos de memória, um atacante pode alterar o programa, sendo capaz de injetar e executar códigos arbitrários, resultando, por exemplo, na escalada de privilégios sobre o sistema em um emulador de terminal (OWASP, 2026).
+
+\subsubsection{CWE-416}
+
+O Use After Free é a referenciação de um endereço de memória que foi desalocado, tal ato gera consequências imprevisíveis no sistema, com resultados que variam desde uma falha abrupta do programa até a execução de códigos e comandos arbitrários, 
+dependendo do contexto e do momento que a vulnerabilidade ocorre. A reutilização de um endereço desalocado, segundo o Open Web Application Security Project (OWASP, 2026), é a forma mais simples de corrupção de dados, visto que, neste cenário, 
+o bloco de memória anteriormente liberado pode ser realocado para um novo objeto válido ao longo da execução do programa. Com isso o ponteiro original ainda aponta para esse endereço (se tornando um ponteiro pendente, ou dangling pointer), 
+qualquer alteração feita através dele corromperá os dados da nova alocação legítima, gerando a falha imprevisível.
 
 % ---------------------------------------------------------------
 \section{Metodologia da pesquisa bibliográfica}
