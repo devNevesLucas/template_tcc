@@ -25,203 +25,121 @@
 % Formato ABNT: SOBRENOME, Nome. Titulo: subtitulo. Edicao. Local: Editora, Ano.
 % ---------------------------------------------------------------
 
-% Livro com um autor
-@book{Wazlawick2020,
-  author    = {Raul Sidnei Wazlawick},
-  title     = {Metodologia de Pesquisa para Ciência da Computação},
-  publisher = {Elsevier},
-  year      = {2020},
-  edition   = {3},
-  address   = {Rio de Janeiro}
+@book{Compilers2009,
+  author = {Alfred V. Aho, Monica S. Lam, Ravi Sethi e Jeffrey D. Ullman},
+  title = {Compiladores: Princípios, Técnicas e Ferramentas.},
+  publisher = {Pearson Addison-Wesley},
+  year = {2009},
+  edition = {2},
+  note = {Tradução de Daniel Vieira}
 }
 
-% Livro com dois autores
-@book{Pressman2016,
-  author    = {Roger S. Pressman and Bruce R. Maxim},
-  title     = {Engenharia de Software: uma abordagem profissional},
-  publisher = {McGraw-Hill},
-  year      = {2016},
-  edition   = {8},
-  address   = {Porto Alegre}
+@incollection{Lattner2011,
+  author    = {Chris Lattner},
+  title     = {{LLVM}},
+  booktitle = {The Architecture of Open Source Applications},
+  volume    = {1},
+  editor    = {Amy Brown and Greg Wilson},
+  publisher = {Lulu.com},
+  year      = {2011},
+  chapter   = {11},
+  url       = {https://aosabook.org/en/v1/llvm.html},
+  urldate   = {2026-04-13},
+  note      = {Acesso em: 13 abr. 2026}
 }
 
-% Livro com um autor (outro exemplo)
-@book{Sommerville2019,
-  author    = {Ian Sommerville},
-  title     = {Engenharia de Software},
-  publisher = {Pearson},
-  year      = {2019},
-  edition   = {10},
-  address   = {São Paulo}
+@article{MadhavC2023,
+  author = {Madhav C, Haritha and Cheramangalath, Unnikrishnan},
+  title = {Memory leak detection using Heap Object Flow Graph (HOFG)},
+  year = {2023},
+  isbn = {9798400700644},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3578527.3578528},
+  doi = {10.1145/3578527.3578528},
+  booktitle = {Proceedings of the 16th Innovations in Software Engineering Conference},
+  articleno = {4},
+  numpages = {11},
+  keywords = {Heap Object Flow Graph},
+  location = {Allahabad, India},
+  series = {ISEC '23}
 }
 
-% Livro traduzido
-@book{Gamma2000,
-  author    = {Erich Gamma and Richard Helm and Ralph Johnson and John Vlissides},
-  title     = {Padrões de Projeto: soluções reutilizáveis de software orientado a objetos},
-  publisher = {Bookman},
-  year      = {2000},
-  address   = {Porto Alegre},
-  note      = {Tradução de Luiz A. Meirelles Salgado}
+@inproceedings{Lattner2004,
+  author = {Lattner, Chris and Adve, Vikram},
+  title = {LLVM: A Compilation Framework for Lifelong Program Analysis \& Transformation},
+  year = {2004},
+  isbn = {0769521029},
+  publisher = {IEEE Computer Society},
+  address = {USA},
+  booktitle = {Proceedings of the International Symposium on Code Generation and Optimization: Feedback-Directed and Runtime Optimization},
+  pages = {75},
+  location = {Palo Alto, California},
+  series = {CGO '04}
 }
 
-% Livro em inglês
-@book{Cormen2009,
-  author    = {Thomas H. Cormen and Charles E. Leiserson and Ronald L. Rivest and Clifford Stein},
-  title     = {Introduction to Algorithms},
-  publisher = {MIT Press},
-  year      = {2009},
-  edition   = {3},
-  address   = {Cambridge}
+@phpthesis{Balakrishnan2007,
+  author = {Gogul Balakrishnan},
+  title = {WYSINWYX: What You See Is Not What You Execute},
+  school = {UNIVERSITY OF WISCONSIN-MADISON},
+  year = {2007},
+  address = {Madison, WI},
+  type = {PhD thesis},
+  note = {Disponível em: \url{https://research.cs.wisc.edu/wpis/papers/balakrishnan_thesis.pdf}}
 }
 
+@misc{MSRC2019,
+  author = {Gavin Thomas},
+  title = {A proactive approach to more secure code},
+  year = {2019},
+  url = {https://www.microsoft.com/en-us/msrc/blog/2019/07/a-proactive-approach-to-more-secure-code},
+  note = {Acesso em: 13 abr. 2026}
+} 
 
-% ---------------------------------------------------------------
-% EXEMPLOS DE ARTIGOS DE PERIODICOS
-% Formato ABNT: SOBRENOME, Nome. Titulo do artigo. Periodico, Local, v. X, n. Y, p. XX-YY, ano.
-% ---------------------------------------------------------------
-
-% Artigo em periódico nacional
-@article{Silva2022,
-  author  = {João Carlos Silva and Maria Aparecida Santos},
-  title   = {Aplicação de técnicas formais na validação de sistemas distribuídos},
-  journal = {Revista Brasileira de Computação Aplicada},
-  year    = {2022},
-  volume  = {14},
-  number  = {2},
-  pages   = {45--58},
-  doi     = {10.5335/rbca.v14i2.12345}
+@misc{Cwe2026,
+  author       = {{The MITRE Corporation}},
+  title        = {About {CWE}},
+  url          = {https://cwe.mitre.org/about/index.html},
+  urldate      = {2026-04-13},
+  year         = {2026},
+  note         = {Acesso em: 13 abr. 2026}
 }
 
-% Artigo em periódico internacional
-@article{LeCun2015,
-  author  = {Yann LeCun and Yoshua Bengio and Geoffrey Hinton},
-  title   = {Deep Learning},
-  journal = {Nature},
-  year    = {2015},
-  volume  = {521},
-  number  = {7553},
-  pages   = {436--444},
-  doi     = {10.1038/nature14539}
+@misc{Cwe2026_401,
+  author       = {{The MITRE Corporation}},
+  title        = {{CWE}-401: Missing Release of Memory after Effective Lifetime},
+  url          = {https://cwe.mitre.org/data/definitions/401.html},
+  urldate      = {2026-04-13},
+  year         = {2026},
+  note         = {Acesso em: 13 abr. 2026}
 }
 
-% Artigo com DOI
-@article{Kitchenham2004,
-  author  = {Barbara Kitchenham},
-  title   = {Procedures for Performing Systematic Reviews},
-  journal = {Keele University Technical Report},
-  year    = {2004},
-  volume  = {33},
-  pages   = {1--26}
+@misc{Cwe2026_415,
+  author       = {{The MITRE Corporation}},
+  title        = {{CWE}-415: Double Free},
+  url          = {https://cwe.mitre.org/data/definitions/415.html},
+  urldate      = {2026-04-13},
+  year         = {2026},
+  note         = {Acesso em: 13 abr. 2026}
 }
 
-
-% ---------------------------------------------------------------
-% EXEMPLOS DE ARTIGOS EM ANAIS DE EVENTOS
-% Formato ABNT: SOBRENOME, Nome. Titulo. In: EVENTO, Local. Anais. Editora, Ano.
-% ---------------------------------------------------------------
-
-% Artigo em congresso nacional
-@inproceedings{Oliveira2023,
-  author    = {Ana Paula Oliveira and Carlos Eduardo Ferreira},
-  title     = {Uma abordagem baseada em microsserviços para sistemas de e-commerce},
-  booktitle = {Anais do Simpósio Brasileiro de Engenharia de Software},
-  year      = {2023},
-  address   = {Campo Grande},
-  pages     = {112--121},
-  publisher = {SBC},
-  doi       = {10.5753/sbes.2023.00015}
+@misc{Cwe2026_416,
+  author       = {{The MITRE Corporation}},
+  title        = {{CWE}-416: Use After Free},
+  url          = {https://cwe.mitre.org/data/definitions/416.html},
+  urldate      = {2026-04-13},
+  year         = {2026},
+  note         = {Acesso em: 13 abr. 2026}
 }
 
-% Artigo em congresso internacional
-@inproceedings{Chen2016,
-  author    = {Tianqi Chen and Carlos Guestrin},
-  title     = {{XGBoost}: A Scalable Tree Boosting System},
-  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining},
-  year      = {2016},
-  address   = {San Francisco},
-  pages     = {785--794},
-  publisher = {ACM},
-  doi       = {10.1145/2939672.2939785}
-}
-
-
-% ---------------------------------------------------------------
-% EXEMPLOS DE DISSERTACOES E TESES
-% Formato ABNT: SOBRENOME, Nome. Titulo. Ano. Dissertacao/Tese - Instituicao, Local, Ano.
-% ---------------------------------------------------------------
-
-% Dissertação de mestrado
-@mastersthesis{Santos2021,
-  author  = {Pedro Henrique Santos},
-  title   = {Análise de desempenho de algoritmos de aprendizado de máquina aplicados à detecção de fraudes em transações financeiras},
-  school  = {Universidade de São Paulo},
-  year    = {2021},
-  address = {São Paulo},
-  type    = {Dissertação (Mestrado em Ciência da Computação)}
-}
-
-% Tese de doutorado
-@phdthesis{Ferreira2019,
-  author  = {Juliana Cristina Ferreira},
-  title   = {Modelos de deep learning para processamento de linguagem natural em português brasileiro},
-  school  = {Universidade Estadual de Campinas},
-  year    = {2019},
-  address = {Campinas},
-  type    = {Tese (Doutorado em Ciência da Computação)}
-}
-
-
-% ---------------------------------------------------------------
-% EXEMPLOS DE SITES E RECURSOS ONLINE
-% Formato ABNT: AUTOR ou ORGANIZACAO. Titulo. Ano. Disponivel em: URL. Acesso em: data.
-% ---------------------------------------------------------------
-
-% Site institucional
-@misc{IBGE2024,
-  author = {{IBGE}},
-  title  = {Pesquisa Nacional por Amostra de Domicílios Contínua -- {PNAD} Contínua},
-  year   = {2024},
-  url    = {https://www.ibge.gov.br/estatisticas/sociais/trabalho/9171-pesquisa-nacional-por-amostra-de-domicilios-continua-mensal.html},
-  note   = {Acesso em: 15 jan. 2025}
-}
-
-% Documentação técnica online
-@misc{ReactDocs2025,
-  author = {{Meta}},
-  title  = {React -- A JavaScript library for building user interfaces},
-  year   = {2025},
-  url    = {https://react.dev},
-  note   = {Acesso em: 20 jan. 2025}
-}
-
-% Artigo em blog técnico
-@misc{Fowler2014,
-  author = {Martin Fowler},
-  title  = {Microservices: a definition of this new architectural term},
-  year   = {2014},
-  url    = {https://martinfowler.com/articles/microservices.html},
-  note   = {Acesso em: 10 fev. 2025}
-}
-
-
-% ---------------------------------------------------------------
-% EXEMPLOS DE MANUAIS E DOCUMENTACAO TECNICA
-% Formato ABNT: ORGANIZACAO. Titulo. Local, Ano.
-% ---------------------------------------------------------------
-
-@manual{ABNT2018,
-  organization = {{Associação Brasileira de Normas Técnicas}},
-  title        = {{NBR} 6023: informação e documentação --- referências --- elaboração},
-  year         = {2018},
-  address      = {Rio de Janeiro}
-}
-
-@manual{ISO25010,
-  organization = {{International Organization for Standardization}},
-  title        = {{ISO/IEC} 25010:2011 --- Systems and software engineering --- Systems and software Quality Requirements and Evaluation ({SQuaRE}) --- System and software quality models},
-  year         = {2011},
-  address      = {Geneva}
+@misc{Owasp2026_401, 
+  author       = {{OWASP Foundation}},
+  title        = {{Memory leak}},
+  url          = {https://owasp.org/www-community/vulnerabilities/Memory_leak},
+  urldate      = {2026-04-13},
+  year         = {2026},
+  note         = {Acesso em: 13 abr. 2026}
+  
 }
 
 

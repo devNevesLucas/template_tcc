@@ -159,8 +159,8 @@
 \section{Contexto}
 \label{cap:Contexto}
 
-Em um levantamento realizado pela Microsoft Security Response Center (MSRC) realizado em 2019,
-foi acurado que aproximadamente 70% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
+Em um levantamento realizado pela Microsoft Security Response Center (MSRC) realizado em 2019 \cite{MSRC2019},
+foi acurado que aproximadamente 70\% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
 tem ligação a falhas de segurança de memória nas linguagens C e C++, causadas por desenvolvedores que inseriram tais erros em seus códigos
 sem perceber. Além disso, a situação teve piora não somente com o incremento da base de código da empresa, mas também com a adição de mais 
 código aberto aos seus projetos.
@@ -192,13 +192,13 @@ pode ser desenvolvido como uma das soluções, com foco em encontrar potenciais 
 
 A hipótese do projeto esta numa integração entre dois métodos de análise estática. 
 \par
-O primeiro método é o Heap Object Flow Graph (HOFG) (Madhav C, et al., 2023), sendo uma representação do fluxo dos blocos de memória alocados na Heap, na qual os vértices do grafo são obtidos 
+O primeiro método é o Heap Object Flow Graph (HOFG) \cite{MadhavC2023}, sendo uma representação do fluxo dos blocos de memória alocados na Heap, na qual os vértices do grafo são obtidos 
 a partir das variáveis do programa que são ponteiros para a memória Heap. A partir do HOFG foi desenvolvido o HOFG-Analyser, uma ferramenta que utiliza o código fonte convertido para o formato HOFG 
 para verificar vulnerabilidades de memória.
 \par
-Porém, o HOFG-Analyser obteve 14% de falsos positivos em seus testes, apresentando dificuldades com aritmética de ponteiros presente na linguagem C. 
+Porém, o HOFG-Analyser obteve 14\% de falsos positivos em seus testes, apresentando dificuldades com aritmética de ponteiros presente na linguagem C. 
 Para lidar com as dificuldades presentes pela aritmética de ponteiros e ser possível diminuir a taxa de falsos positivos do HOFG original, 
-uma integração com o Value-Set Analysis (VSA) (Balakrishnan, 2007) poderia ser realizada. O VSA, técnica de interpretação abstrata originalmente aplicada para análise de executáveis, 
+uma integração com o Value-Set Analysis (VSA) \cite{Balakrishnan2007} poderia ser realizada. O VSA, técnica de interpretação abstrata originalmente aplicada para análise de executáveis, 
 tem o objetivo de encontrar uma aproximação segura para o conjunto de valores que cada objeto de dados pode armazenar em cada ponto de um programa. 
 \par
 Ao integrar VSA ao HOFG, seria possível acompanhar o endereço abstrato dos objetos alocados na memória Heap, bem como estimar limites de intervalos que tais endereços podem assumir, 
@@ -251,7 +251,7 @@ comportamento do programa a partir de abstrações e aproximações para mapear 
 
 \subsubsection{Árvore sintática abstrata (AST)}
 
-Segundo Aho et al. (2006), as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, possuem para uma expressão, cada nó interno de uma expressão representa um operador, enquanto os seus nós filhos representam os respectivos operandos. 
+Segundo \citeonline{Compilers2009}, as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, possuem para uma expressão, cada nó interno de uma expressão representa um operador, enquanto os seus nós filhos representam os respectivos operandos. 
 Além disso, as ASTs se assemelham às árvores de derivação até certo nível, diferenciando-se pelo fato de que os nós interiores da AST representam construções de programação, ao passo que na árvore de derivação os nós 
 interiores representam símbolos não-terminais. Outra diferença é a ausência de símbolos não-terminais auxiliares, tais como aqueles que representam termos, fatores, ou outras variações de expressões, na AST. 
 Essa falta ocorre pois tais detalhes sintáticos são desnecessários para a fase de tradução, resultando em uma representação mais condensada e focada na semântica do código fonte.
@@ -271,7 +271,7 @@ a forma ganhou popularidade pelas suas propriedades que permitem a simplificaç�
 \subsubsection{Value-Set Analysis}
 
 O Value-Set Analysis (VSA) é uma técnica de interpretação abstrata de código executável, que tem como objetivo encontrar uma aproximação segura para o conjunto de valores que cada objeto de 
-dados pode armazenar em cada ponto de um programa (Balakrishnan, 2007). O VSA possui similaridades com o problema de análise de ponteiros (pointer-analysis), frequentemente estudado em análises de 
+dados pode armazenar em cada ponto de um programa \cite{Balakrishnan2007}. O VSA possui similaridades com o problema de análise de ponteiros (pointer-analysis), frequentemente estudado em análises de 
 programas escritos em linguagens de alto nível. Enquanto a análise de ponteiros tradicional determina uma sobreaproximação (over-approximation) de conjunto de variáveis cujos endereços uma determinada variável 
 pode conter, o VSA atua determinando uma sobreaproximação do conjunto de endereços que cada objeto de dados pode conter em cada ponto do programa. 
 \par
@@ -281,7 +281,7 @@ o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que
 
 \subsubsection{Incompletude da análise estática}
 
-Os métodos de análise estática não garantem que todas as vulnerabilidades de um código sejam encontradas. Dentre os motivos, sendo listados por Balakrishnan em 2007, estão:
+Os métodos de análise estática não garantem que todas as vulnerabilidades de um código sejam encontradas. Dentre os motivos, sendo listados por \citeonline{Balakrishnan2007}, estão:
 
 \begin{itemize}
 \item 
@@ -301,7 +301,7 @@ Ferramentas de análise estática normalmente ignoram o código assembly adicion
 
 \subsection{LLVM}
 
-Segundo Lattner e Adve (2004), o LLVM é uma infraestrutura de compilação designada para prover transparência e análise e transformação de programas de forma persistente 
+Segundo \citeonline{Lattner2004}, o LLVM é uma infraestrutura de compilação designada para prover transparência e análise e transformação de programas de forma persistente 
 durante todo o seu ciclo de vida. O sistema é fundamentado em uma representação intermediária (IR) de baixo nível, baseada na sua forma SSA, permitindo uma ponte universal entre diferentes linguagens 
 e arquiteturas. A arquitetura introduz recursos fundamentais para a análise de código:
 
@@ -345,7 +345,7 @@ já que a completude presente na representação permite que o suporte de uma no
 
 \subsection{Vulnerabilidades de memória}
 
-Segundo o Microsoft Security Response Center (MSRC) (2019), entre o período de 2004 a 2018 aproximadamente 70% das vulnerabilidades corrigidas mapeadas a um CVE foram causadas por desenvolvedores 
+Segundo o Microsoft Security Response Center (MSRC) \cite{MSRC2019}, entre o período de 2004 a 2018 aproximadamente 70\% das vulnerabilidades corrigidas mapeadas a um CVE foram causadas por desenvolvedores 
 que de forma desavisada adicionaram problemas relacionados a vulnerabilidades de memória em seus códigos escritos nas linguagens C e C++. Além disso, a medida que a base de código da Microsoft era incrementada e 
 mais código aberto era utilizado, tal problema continuava a aumentar.
 
@@ -353,14 +353,14 @@ mais código aberto era utilizado, tal problema continuava a aumentar.
 A Common Weakness Enumeration (CWE) consiste em uma lista desenvolvida de forma colaborativa, que relaciona fraquezas recorrentes em software e hardware. No contexto de segurança, 
 uma fraqueza (weakness) é uma condição num software, firmware, hardware, ou serviço que, a partir de certas circunstâncias, pode contribuir para a introdução de vulnerabilidades. Fraquezas são identificadas, 
 classificadas, descritas e integradas à lista oficial da CWE (CWE List). A compreensão dessas fraquezas que resultam em vulnerabilidades permite que desenvolvedores de software, designers de hardware, 
-e arquitetos de segurança atuem na mitigação e eliminação de tais fraquezas ainda nas fases iniciais do ciclo de desenvolvimento. 
+e arquitetos de segurança atuem na mitigação e eliminação de tais fraquezas ainda nas fases iniciais do ciclo de desenvolvimento \cite{Cwe2026}. 
 \par
 A lista CWE é atualizada de três a quatro vezes por ano, incluindo novas descobertas e atualizando itens registrados anteriormente. Antes da publicação oficial, o conteúdo em desenvolvimento é 
 disponibilizado e pode ser acompanhado através do CWE Content Development Repository (CDR), sendo um repositório público com objetivo de garantir transparência e colaboração da comunidade, viabilizando a 
 submissão de novas fraquezas, contribuições para registros existentes e acompanhamento das operações internas da CWE.
 
 \subsubsection{CWE-401}
-Conforme a Open Web Application Security Project (OWASP, 2026), um vazamento de memória é uma forma não intencionada de consumo de memória, ocorrendo quando o desenvolvedor falha em liberar um bloco de memória alocada quando a mesma não é mais necessária. Sendo dividido, 
+Conforme a \citeonline{Owasp2026_401}, um vazamento de memória é uma forma não intencionada de consumo de memória, ocorrendo quando o desenvolvedor falha em liberar um bloco de memória alocada quando a mesma não é mais necessária. Sendo dividido, 
 de forma geral, em três cenários:
 
 \begin{itemize}
