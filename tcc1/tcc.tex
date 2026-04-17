@@ -277,7 +277,7 @@ pode conter, o VSA atua determinando uma sobreaproximação do conjunto de ender
 \par
 Como consequência, os resultados do VSA podem ser utilizados para 
 identificar quais \textit{a-locs} (\textit{abstract locations}) estão contidos nos endereços de um determinado \textit{a-loc}. Por outro lado, o VSA também possui características de análises estáticas numéricas. Além de rastrear endereços, 
-o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que cada objeto de dados pode assumir ao longo da execução.
+o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que cada objeto de dados pode assumir ao longo da execução \cite{Balakrishnan2007}.
 
 \subsubsection{Limitações da análise estática}
 
@@ -316,7 +316,7 @@ Mecanismo uniforme de exceções, utilizado para implementar recursos de tratame
 
 \subsubsection{Implementação do Design de três fases}
 
-Num compilador moderno, três componentes principais são aplicados, sendo eles:
+Num compilador moderno, três componentes principais são aplicados \cite{Lattner2011}, sendo eles:
 
 \begin{itemize}
 \item
@@ -330,18 +330,18 @@ O back end, também conhecido como o gerador de código. Responsável por mapear
 \par 
 Com tal padrão a portabilidade de um compilador para uma nova linguagem de programação fonte gera a necessidade de implementação do novo \textit{front end}, mas permitindo que o otimizador e o \textit{back end} sejam reutilizados. 
 Porém, esse benefício não fora alcançado em todos os casos já que implementações do padrão de três fases, numa época em que o LLVM estava tendo seu início, em linguagens como Perl, Python, Ruby e Java não 
-compartilhavam código entre si, ou seja, cada uma destas linguagens possuía sua própria implementação de \textit{front end}, otimizador e \textit{back end}.
+compartilhavam código entre si, ou seja, cada uma destas linguagens possuía sua própria implementação de \textit{front end}, otimizador e \textit{back end} \cite{Lattner2011}.
 
 \subsubsection{Representação Intermediária (LLVM IR)}
 
 A representação intermediária é o aspecto principal do LLVM, sendo a forma que compilador utiliza para representar o código fonte sendo compilado. É designada para análises de nível intermediário e 
 transformações que são encontradas no setor de otimização de um compilador. Desenhada com objetivos de adicionar suporte para otimizações em tempo de execução não custosas, otimizações interprocedurais, 
 análise completa do programa, transformações abrangendo nível de reestruturação, dentre outros, tem como aspecto mais importante o fato de ser definida como uma linguagem de primeira classe com semântica bem definida, 
-tendo seu conjunto de instruções próximo do padrão RISC e possuindo como um de seus pilares a forma SSA.
+tendo seu conjunto de instruções próximo do padrão RISC e possuindo como um de seus pilares a forma SSA \cite{Lattner2011}.
 \par 
 Sendo a única interface para o otimizador do LLVM, se torna o único requisito para escrever um front end para a infraestrutura. Por possuir uma forma textual legível, desenvolver um front end que tem como saída 
 a representação intermediária do LLVM se torna algo possível e viável. Tal característica é um dos principais fatores para a disseminação da infraestrutura do LLVM em diferentes aplicações, 
-já que a completude presente na representação permite que o suporte de uma nova linguagem seja simplificado.
+já que a completude presente na representação permite que o suporte de uma nova linguagem seja simplificado \cite{Lattner2011}.
 
 \subsection{Vulnerabilidades de memória}
 
@@ -357,7 +357,7 @@ e arquitetos de segurança atuem na mitigação e eliminação de tais fraquezas
 \par
 A lista CWE é atualizada de três a quatro vezes por ano, incluindo novas descobertas e atualizando itens registrados anteriormente. Antes da publicação oficial, o conteúdo em desenvolvimento é 
 disponibilizado e pode ser acompanhado através do \textit{CWE Content Development Repository} (CDR), sendo um repositório público com objetivo de garantir transparência e colaboração da comunidade, viabilizando a 
-submissão de novas fraquezas, contribuições para registros existentes e acompanhamento das operações internas da CWE.
+submissão de novas fraquezas, contribuições para registros existentes e acompanhamento das operações internas da CWE \cite{Cwe2026}.
 
 \subsubsection{CWE-401}
 Conforme a \citeonline{Owasp2026_401}, um vazamento de memória é uma forma não intencionada de consumo de memória, ocorrendo quando o desenvolvedor falha em liberar um bloco de memória alocada quando a mesma não é mais necessária. Sendo dividido, 
