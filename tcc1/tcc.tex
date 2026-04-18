@@ -66,7 +66,7 @@
 \titulo{Detecção de vulnerabilidades de memória em C: Abordagem integrando VSA e HOFG}
 \autor{Lucas Zacarias Martins Neves}
 \local{São Paulo}
-\data{2025}
+\data{2026}
 \orientador{Prof. Nome do Orientador}
 % \coorientador{Prof. Nome do Coorientador} % Descomente se houver coorientador
 
@@ -260,10 +260,10 @@ Essa falta ocorre pois tais detalhes sintáticos são desnecessários para a fas
 
 O SSA (\textit{Static Single Assignment}) é uma forma de representação de código intermediário, tem como ponto chave as características de que cada definição de variável possui um nome distinto, e de que cada uso refere-se a apenas uma única definição, 
 sendo essas também as duas restrições da representação, significando que, caso um programa atenda tais restrições, tal programa estará em sua forma SSA. Para garantir essa singularidade, variáveis que sofrem múltiplas atribuições no código-fonte são renomeadas, 
-sendo criadas versões distintas para cada nova atribuição (por exemplo, v1, v2, v3) \cite{Singer2022}. 
+sendo criadas versões distintas para cada nova atribuição (por exemplo, $v1$, $v2$, $v3$) \cite{Singer2022}. 
 \par
 Além disso, em programas com desvios do fluxo de controle, contendo blocos condicionais e laços de repetição, diferentes versões da mesma variável podem chegar ao mesmo ponto de convergência no 
-Grafo de Fluxo de Controle (CFG). São inseridas então, nesses pontos de junção, as chamadas funções (\textit{phi functions}), possuindo N argumentos correspondentes aos N caminhos do fluxo de controle convergentes, 
+Grafo de Fluxo de Controle (CFG). São inseridas então, nesses pontos de junção, as chamadas funções $\phi$ (\textit{phi functions}), possuindo $N$ argumentos correspondentes aos $N$ caminhos do fluxo de controle convergentes, 
 e seleciona a versão correta da variável com base no caminho de execução tomado pelo programa. Sendo criada inicialmente para facilitar o desenvolvimento de transformações de programa de alto nível, 
 a forma ganhou popularidade pelas suas propriedades que permitem a simplificação de algoritmos e a redução da complexidade computacional das análises de fluxo de dados. Atualmente, 
 é amplamente utilizada por compiladores de código aberto e comerciais, como é o caso do LLVM, sendo uma estrutura fundamental para a análise estática de programas \cite{Singer2022}.
@@ -278,6 +278,37 @@ pode conter, o VSA atua determinando uma sobreaproximação do conjunto de ender
 Como consequência, os resultados do VSA podem ser utilizados para 
 identificar quais \textit{a-locs} (\textit{abstract locations}) estão contidos nos endereços de um determinado \textit{a-loc}. Por outro lado, o VSA também possui características de análises estáticas numéricas. Além de rastrear endereços, 
 o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que cada objeto de dados pode assumir ao longo da execução \cite{Balakrishnan2007}.
+
+\subsubsection{\textit{Value-Set}}
+
+Para representar a junção de endereços de memória e valores numéricos, o VSA utiliza uma estrutura matemática chamada \textit{Value-Set} (conjunto de valores). Um \textit{Value-Set} é representado com uma tupla de intervalos com passo (\textit{strided intervals}, ou SI) de $k$-bits, 
+simbolizando o conjunto de deslocalementos (\textit{offsets}) em cada região de memória. Um intervalos com passo de $k$-bit $s[l, u]$ representa o conjunto de números inteiros \cite{Balakrishnan2007}:
+
+\begin{equation}
+    \{ i \in [-2^{k-1}, 2^{k-1}] \mid l \leq i \leq u, i \equiv l \pmod{s} \}
+\end{equation}
+
+A partir disso:
+\begin{itemize}
+\item $s$ é chamado de passo (\textit{stride}).
+\item $[l,u]$ é chamado de intervalo.
+\item $0[l,l]$ representa um conjunto unitário.
+\item $\bot$ também sendo considerado um intervalo com passo, denota um conjunto vazio de deslocamentos.
+\end{itemize}
+
+Considere o conjunto de endereços:
+\begin{equation}
+    S = {(Global \rightarrow \{1, 3, 5, 9\}), (AR_{Main} \rightarrow \{-48, -40\})}
+\end{equation}
+
+O \textit{Value-Set} de $S$ é o conjunto:
+\begin{equation}
+    {(Global \rightarrow 2[1, 9]), (AR_{Main} \rightarrow 8[-48, -40])}
+\end{equation}
+
+Em tal cenário, o \textit{Value-Set} de $S$ é uma \textit{over-approximation}, pois o \textit{Value-Set} contempla o endereço global $7$, que não é um elemento de $S$.
+Além disso, um \textit{Value-Set} é capaz de representar tanto um conjunto de endereços de memória, quanto um conjunto de valores numéricos. Dessa forma, a $2$-tupla $(2[1, 9], \bot)$ indica o conjunto de valores numéricos $\{1, 3, 5, 7, 9\}$, assim como indica o conjunto de endereços ${(Global, 1), (Global, 3), ... , (Global, 9)}$ \cite{Balakrishnan2007}.
+
 
 \subsubsection{Limitações da análise estática}
 
@@ -395,6 +426,15 @@ Design Science Research
 
 \section{Métricas de Avaliação}
 \label{sec:metricas_de_avaliacao}
+
+\subsection{Juliet Test Suite}
+
+O Juliet Teste Suite é uma coleção de programas escritos em C/C++ e Java, sendo casos de teste sintéticos, isto é, foram desenvolvidas como exemplos de vulnerabilidades caracterizadas.
+\par
+A coleção foi desenvolvida pela National Security Agency's Center for Assured Software, estando em domínio público. Segue uma estrutura focada em funções disponíveis na plataforma subjacente e não em bibliotecas de terceiros. 
+Fora desenvolvida no Microsoft Windows, porém boa parte dos programas teste foram desenvolvidos sem a utilização de funções provenientes de uma plataforma ou sistema operacional específica, e, além disso, todos os casos de teste foram compilados.
+
+\subsection{Projetos Open Source}
 
 \section{Fundamentos}
 \label{sec:fundamentos}
