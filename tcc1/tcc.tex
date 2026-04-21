@@ -35,6 +35,14 @@
 \usepackage{pgfgantt}               % Diagramas de Gantt
 \usepackage[brazilian,hyperpageref]{backref}  % Páginas com citações
 \usepackage[alf]{abntex2cite}       % Citações ABNT
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Traduções para o padrão em português (ABNT)
+\floatname{algorithm}{Algoritmo}
+\renewcommand{\algorithmicrequire}{\textbf{Entrada:}}
+\renewcommand{\algorithmicensure}{\textbf{Saída:}}
+\renewcommand{\algorithmicfunction}{\textbf{Função}}
 
 % ---------------------------------------------------------------
 % CONFIGURAÇÕES DO PDF
@@ -327,8 +335,135 @@ O código fonte de um programa pode ser escrito em mais de uma linguagem de prog
 múltiplas linguagens de programação, cada uma contendo suas características e peculiaridades.
 \item
 E, mesmo em um código fonte escrito em apenas uma linguagem de programação de alto nível, tal código pode conter código escrito em \textit{assembly} em certos locais. 
-Ferramentas de análise estática normalmente ignoram o código \textit{assembly} adicionado, ou não levam a análise além do código assembly adicionado.
+Ferramentas de análise estática normalmente ignoram o código \textit{assembly} adicionado, ou não levam a análise além do código \textit{assembly} adicionado.
 \end{itemize}
+
+\subsection{\textit{Heap Object Flow Graph} (HOFG)}
+\label{sec:HOFG}
+
+O \textit{Heap Object Flow Graph} é uma representação de programa baseada nos blocos de memória alocados na \textit{Heap}. Os vértices de tal grafo são constituídos pelas variáveis do programa que atuam como ponteiro para esses blocos de memória. Para converter um programa em sua representação HOFG, 
+é necessário que seja primeiramente convertido para a forma SSA. Tal feito é necessário pois a forma SSA permite a visualização de forma explícita da definição e usos de cada variável, auxiliando assim, na distinção entre as suas atribuições e seus usos \cite{MadhavC2023}.
+\par 
+Além disso, as definições e usos indiretos dos objetos também precisam ser levados em consideração para variáveis cujos endereços são referenciados ou para ponteiros de níveis superiores. 
+Tais dados são capturados por meio das informações de ponteiro embutidas no HOFG. A incorporação de informações de ponteiros sem um módulo de análise de ponteiros separado é uma das peculiaridades do HOFG. 
+A análise estática presente no \textit{Heap Object Flow Graph} rastreia o fluxo de objetos alocados na \textit{Heap} para verificar se tais itens alcançam, ou não, um nó de liberação de memória \cite{MadhavC2023}.
+\par
+\begin{samepage}
+    Além das informações de definições e usos, o HOFG também incorpora o fluxo de controle, o que adiciona sensibilidade de fluxo à análise. A geração do HOFG e sua análise seguem os seguintes passos \cite{MadhavC2023}:
+    \begin{itemize}
+    \item Geração do HOFG para o programa inteiro.
+    \item Poda de caminhos sem vazamentos.
+    \item Detecção de vazamentos a partir do HOFG podado.
+    \end{itemize}
+\end{samepage}
+
+\begin{algorithm}[htbp]
+\small
+\caption{Geração do Grafo de Fluxo de Objetos na \textit{Heap} (HOFG)}
+\label{alg:generate_hofg}
+\begin{algorithmic}[1]
+\Require Função $F$ na forma de Representação Intermediária (IR)
+\Ensure Grafo $HOFG(V, E)$ atualizado com os vértices e arestas da função
+\Function{ConstruirHOFG}{$F$}
+    \For{\textbf{cada} bloco básico $B$ na Função $F$}
+        \For{\textbf{cada} instrução $I$ no bloco básico $B$}
+            
+            \If{$I$ é uma instrução de alocação de memória da forma: $p = \text{malloc}(o)$}
+                \State Adicionar os vértices $o_i$ e $p$ ao conjunto $V$ e a aresta $o_i \to p$ a $F$
+            \EndIf
+            
+            \If{$I$ é uma instrução de liberação de memória: $\text{free}(p)$}
+                \If{$p \in V$}
+                    \State Adicionar aresta de $p$ para um novo nó \textit{free}
+                \EndIf
+            \EndIf
+            
+            \If{$I$ é uma instrução de cópia da forma: $q = p$}
+                \If{$p \in V$}
+                    \If{$q \notin V$}
+                        \State Adicionar vértice $q$ a $V$
+                    \EndIf
+                    \State Adicionar aresta de fluxo $p \to q$ a $F$
+                \EndIf
+            \EndIf
+            
+            \If{$I$ é uma instrução de desreferenciamento de ponteiro (ex: $*p$)}
+                \If{$p \in V$}
+                    \If{$*p \notin V$}
+                        \State Adicionar $*p$ a $V$
+                    \EndIf
+                    \State Adicionar aresta de desreferenciamento $p \to *p$ a $R$
+                \EndIf
+            \EndIf
+            
+            \If{$I$ é uma instrução de carregamento (\textit{load}): $q = *p$}
+                \If{$*p \in V$}
+                    \If{$q \notin V$}
+                        \State Adicionar $q$ a $V$
+                    \EndIf
+                    \State Adicionar aresta de fluxo $*p \to q$ a $F$
+                \EndIf
+            \EndIf
+            
+            \If{$I$ é uma instrução de armazenamento (\textit{store}): $*p = q$}
+                \If{$q \in V$}
+                    \If{$*p \notin V$}
+                        \State Adicionar $*p$ a $V$
+                    \EndIf
+                    \State Adicionar aresta de fluxo $q \to *p$ a $F$
+                \EndIf
+                
+                \If{$p \to q \in F$ \textbf{e} as arestas $p \to *p, q \to *q \in R$}
+                    \State Adicionar aresta de fluxo derivado $*p \to *q$ em $D$ com as mesmas restrições de caminho que $p \to q$
+                \EndIf
+            \EndIf
+            
+        \EndFor
+    \EndFor
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Geração do HOFG para o programa inteiro}
+
+A implementação do HOFG tem como base a infraestrutura do \textit{framework} LLVM. Inicialmente o código fonte é compilado, arquivo por arquivo, para a obtenção de sua versão \textit{bytecode} (.bc). Em seguida, tais arquivos são vinculados em tempo de ligação (\textit{link time}) com o uso do \textit{LLVM Gold Plugin}, fornecendo, 
+desta maneira, um arquivo \textit{bitcode} unificado representando o programa completo. Dessa forma, o LLVM auxilia na garantia de um dos requisitos da análise de códigos fonte, sendo a necessidade de lidar com dependências entre múltiplos módulos de código fonte \cite{MadhavC2023}.
+
+\par
+Este \textit{bitcode} unificado é então convertido para a forma SSA a partir da chamada do passe \textit{mem2reg pass}, nativo do LLVM. Por fim, o arquivo binário de todo o programa, agora no formato SSA, se torna entrada para o programa responsável por analisar o HOFG e verificar os vazamentos de memória \cite{MadhavC2023}.
+
+\par
+O HOFG captura o fluxo de cada bloco de memória alocado na \textit{Heap} através das variáveis (ponteiros) presentes no programa. Trata-se de uma representação seletiva, que captura apenas as partes do código que possuem envolvimento com a memória alocada na \textit{Heap} e nos caminhos que essa memória percorre até alcançar diferentes pontos de execução. 
+Cada atribuição de uma variável de ponteiro é registrada na representação, desde que tenha como origem um bloco alocado na \textit{Heap}. A representação de programa foi projetada de tal sorte que toda e qualquer informação de ponteiros necessária para a detecção de erros esta armazenada na sua própria estrutura \cite{MadhavC2023}. 
+
+\par
+A geração do HOFG é iniciada pela geração de sumários de funções. Tais sumários registram as propriedades da função que afetam os componentes do HOFG, sendo uma etapa fundamental para a análise interprocedural \cite{MadhavC2023}.
+
+\par
+
+\begin{samepage}
+    O processo da geração de sumários realiza as seguintes etapas para cada função analisada \cite{MadhavC2023}:
+    \begin{itemize}
+    \item Geração do HOFG local da função.
+    \item Ao encontrar uma instrução de chamada de função, é gerado o sumário da função chamada (\textit{callee}), se o mesmo não estiver disponível.
+    \item Aplicação do sumário da função chamada, se estiver disponível. Esta etapa envolve a adição de arestas direcionadas para (ou a partir de) argumentos reais e formais.
+    \item Atualização do sumário da função atual.
+    \end{itemize}
+\end{samepage}
+
+O \textit{Heap Object Flow Graph} é definido como um grafo orientado $HOFG(V, E)$, onde \cite{MadhavC2023}:
+\begin{align}
+    E &= \{ \text{arestas de fluxo } F, \text{arestas de desreferenciamento } R, \nonumber \\ &\quad \text{e arestas de fluxo derivado } D \} \\[1em]
+    V =& \{ \text{objetos alocados na memória \textit{Heap} } o_i, \text{variáveis de programa } p, p*, \dots, \nonumber \\ &\quad \text{nós de liberação } free_i \}
+\end{align}
+
+O grafo do HOFG é construído de acordo com as regras descritas no \ref{alg:generate_hofg}. As condições que anotam as arestas do HOFG são derivadas das transições entre os blocos básicos e dos identificadores de blocos básicos que possuem associação com as instruções do programa \cite{MadhavC2023}.
+\par 
+O número de vértices presente no HOFG depende da quantidade real de instruções que possuem ponteiros para a memória \textit{Heap} como operandos. Considerando $N$ como o total de linhas de código (LoC) do programa, o pior caso a ocorre quando cada instrução possui um objeto alocado na memória \textit{Heap} como operando, 
+o que limita a complexidade de espaço a $O(N)$ \cite{MadhavC2023}.
+\par
+Enquanto isso, o número de arestas no grafo depende do caminho de fluxo do objeto, isto é, do número de vezes que o seu valor é utilizado ou copiado após a alocação. Dessa forma, esse número varia para cada objeto alocado no programa. E, assim como ocorre com o número de vértices, a complexidade espacial referente ao 
+número máximo de arestas também pode ser delimitado superiormente por $O(N)$, pois, num pior caso, é considerado como o número total de linhas de código (LoC) no programa \cite{MadhavC2023}.
 
 \subsection{LLVM}
 
@@ -370,7 +505,7 @@ transformações que são encontradas no setor de otimização de um compilador.
 análise completa do programa, transformações abrangendo nível de reestruturação, dentre outros, tem como aspecto mais importante o fato de ser definida como uma linguagem de primeira classe com semântica bem definida, 
 tendo seu conjunto de instruções próximo do padrão RISC e possuindo como um de seus pilares a forma SSA \cite{Lattner2011}.
 \par 
-Sendo a única interface para o otimizador do LLVM, se torna o único requisito para escrever um front end para a infraestrutura. Por possuir uma forma textual legível, desenvolver um front end que tem como saída 
+Sendo a única interface para o otimizador do LLVM, se torna o único requisito para escrever um \textit{front end} para a infraestrutura. Por possuir uma forma textual legível, desenvolver um front end que tem como saída 
 a representação intermediária do LLVM se torna algo possível e viável. Tal característica é um dos principais fatores para a disseminação da infraestrutura do LLVM em diferentes aplicações, 
 já que a completude presente na representação permite que o suporte de uma nova linguagem seja simplificado \cite{Lattner2011}.
 
@@ -380,9 +515,9 @@ Segundo o \textit{Microsoft Security Response Center} (MSRC) \cite{MSRC2019}, en
 que de forma desavisada adicionaram problemas relacionados a vulnerabilidades de memória em seus códigos escritos nas linguagens C e C++. Além disso, a medida que a base de código da Microsoft era incrementada e 
 mais código aberto era utilizado, tal problema continuava a aumentar.
 
-\subsubsection{Common Weakness Enumeration (CWE)}
+\subsubsection{\textit{Common Weakness Enumeration} (CWE)}
 A \textit{Common Weakness Enumeration} (CWE) consiste em uma lista desenvolvida de forma colaborativa, que relaciona fraquezas recorrentes em software e hardware. No contexto de segurança, 
-uma fraqueza (weakness) é uma condição num software, firmware, hardware, ou serviço que, a partir de certas circunstâncias, pode contribuir para a introdução de vulnerabilidades. Fraquezas são identificadas, 
+uma fraqueza (\textit{weakness}) é uma condição num software, firmware, hardware, ou serviço que, a partir de certas circunstâncias, pode contribuir para a introdução de vulnerabilidades. Fraquezas são identificadas, 
 classificadas, descritas e integradas à lista oficial da CWE (\textit{CWE List}). A compreensão dessas fraquezas que resultam em vulnerabilidades permite que desenvolvedores de software, designers de hardware, 
 e arquitetos de segurança atuem na mitigação e eliminação de tais fraquezas ainda nas fases iniciais do ciclo de desenvolvimento \cite{Cwe2026}. 
 \par
@@ -414,7 +549,7 @@ Ao sobrescrever registradores ou endereços específicos de memória, um atacant
 
 O \textit{Use After Free} é a referenciação de um endereço de memória que foi desalocado, tal ato gera consequências imprevisíveis no sistema, com resultados que variam desde uma falha abrupta do programa até a execução de códigos e comandos arbitrários, 
 dependendo do contexto e do momento que a vulnerabilidade ocorre. A reutilização de um endereço desalocado, segundo o \textit{Open Web Application Security Project} (OWASP, 2026), é a forma mais simples de corrupção de dados, visto que, neste cenário, 
-o bloco de memória anteriormente liberado pode ser realocado para um novo objeto válido ao longo da execução do programa. Com isso o ponteiro original ainda aponta para esse endereço (se tornando um ponteiro pendente, ou dangling pointer), 
+o bloco de memória anteriormente liberado pode ser realocado para um novo objeto válido ao longo da execução do programa. Com isso o ponteiro original ainda aponta para esse endereço (se tornando um ponteiro pendente, ou \textit{dangling pointer}), 
 qualquer alteração feita através dele corromperá os dados da nova alocação legítima, gerando a falha imprevisível.
 
 % ---------------------------------------------------------------
