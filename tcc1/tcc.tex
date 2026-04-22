@@ -541,7 +541,7 @@ Processos em nível de núcleo (\textit{Kernel-land Process}), sendo o caso com 
 \subsubsection{CWE-415}
 
 Com o título de liberação dupla (\textit{double free}), ocorre quando o mesmo endereço de memória é liberado mais de uma vez. Isso acontece pois, quando o programa chama a função de liberação 
-(como a função free() da biblioteca stdlib, na linguagem C) utilizando o mesmo endereço de memória como argumento, a estrutura de dados responsável por gerenciar a heap pode ser corrompida, permitindo assim que um 
+(como a função \textit{free()} da biblioteca stdlib, na linguagem C) utilizando o mesmo endereço de memória como argumento, a estrutura de dados responsável por gerenciar a heap pode ser corrompida, permitindo assim que um 
 usuário malicioso escreva em posições arbitrárias de memória. O impacto de tal corrupção pode causar desde a falha abrupta do programa até a alteração do fluxo de execução. 
 Ao sobrescrever registradores ou endereços específicos de memória, um atacante pode alterar o programa, sendo capaz de injetar e executar códigos arbitrários, resultando, por exemplo, na escalada de privilégios sobre o sistema em um emulador de terminal (OWASP, 2026).
 
@@ -578,7 +578,23 @@ Fora desenvolvida no Microsoft Windows, porém boa parte dos programas teste for
 \section{Trabalhos relacionados}
 \label{sec:trabalhos_relacionados}
 
-O analisador será avaliado a partir do Juliet Test Suite, sendo um conjunto de casos da linguagem C que exploram as suas vulnerabilidades. O resultado obtido será comparado com os resultados de analisadores e algoritmos desenvolvidos que possuem como finalidade o mesmo objetivo, ou seja, de garantir a segurança dos projetos. O principal analisador a ser comparado é o \textit{HOFG-Analyser}, sendo a aplicação original da representação de programas.
+\subsection{Trabalho 1: \textit{Memory leak detection using Heap Object Flow Graph} (HOFG)}
+
+O artigo que apresenta a representação de programas HOFG, apresenta também o \textit{HOFG-Analyser}, um analisador de código estático baseado nessa estrutura para a detecção de vazamentos de memória. 
+A ferramenta foi implementado sobre o LLVM \textit{framework} versão 12 e o compilador Clang 3.8. Conforme destacado pelos próprios autores, o analisador assume certas concessões em sua corretude (\textit{unsound trade-offs}), de forma similar como ocorre em abordagens anteriores \cite{MadhavC2023}.
+
+\par
+O primeiro ponto ocorre em caminhos que são finalizados com outra chamada de função de biblioteca que não seja a função \textit{free()}, em tais casos o rastreamento do objeto alocado na \textit{Heap} é interrompido. Além disso, é pontuado que operações aritméticas complexas envolvendo ponteiros não são rastreadas com precisão. 
+Isto é, dado um ponteiro $p$, as operações $q=p+1$ e $q=p$ resultam na adição de uma mesma aresta do ponteiro $p$ para o ponteiro $q$ no HOFG. Consequentemente, as instruções \textit{free(p)} e \textit{free(q)} seriam interpretadas de forma simplificada como a liberação do mesmo objeto na memória \textit{Heap} \cite{MadhavC2023}.
+
+\par
+O \textit{HOFG-Analyser} foi comparado com a ferramenta de código aberto INFER, utilizando oito programas de referência do SPECINT2006 e três projetos de código aberto. A análise classifica as vulnerabilidades encontradas em duas categorias, possíveis vazamentos (\textit{may-leak points}), sendo percursos no HOFG que tem seu destino um nó de liberação, 
+mas que possuam arestas anotadas com condições que só podem ser resolvidas em tempo de execução. E vazamentos confirmados (\textit{must-leak points}), sendo percursos presentes no HOFG que não terminam em um nó de liberação \cite{MadhavC2023}.
+
+\par
+Diante das limitações relacionadas ao tratamento de aritmética de ponteiros no \textit{HOFG-Analyser} a integração com o \textit{Value-Set Analysis} (VSA) é apresentada como uma abordagem viável. A fragilidade encontrada no HOFG pode ser superada ao se utilizar as aproximações de valores (presentes em intervalos válidos) que cada variável pode assumir em tempo de execução, 
+sendo calculadas através do VSA. Logo, em uma operação como $q=p+1$, o VSA tem a capacidade de verificar se o deslocamento calculado resulta em um endereço válido que a variável $q$ possa assumir. Ao calcular a diferença de endereços abstratos (\textit{a-locs}) entre $p$ e $q$, torna-se viável validar ou impedir a criação de uma aresta interligando tais ponteiros no HOFG. 
+Com isso, a integração de HOFG e VSA atuaria como um filtro, capaz de reduzir a imprecisão da análise realizada pelo \textit{HOFG-Analyser}.
 
 
 % ===============================================================
