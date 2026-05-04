@@ -332,6 +332,7 @@ tais chamadas para funções e trechos inalcançáveis geram alertas durante a a
 Garantindo, dessa forma, que nenhum ponto cabível de vulnerabilidade passe despercebido e que erros reais sejam tratados \cite{spa}.
 
 \subsection{LLVM}
+\label{subsec:llvm}
 
 Segundo \citeonline{Lattner2004}, o LLVM é uma infraestrutura de compilação designada para prover transparência e análise e transformação de programas de forma persistente 
 durante todo o seu ciclo de vida. O sistema é fundamentado em uma representação intermediária (IR) de baixo nível, baseada na sua forma SSA, permitindo uma ponte universal entre diferentes linguagens 
@@ -347,6 +348,7 @@ Mecanismo uniforme de exceções, utilizado para implementar recursos de tratame
 \end{itemize}
 
 \subsubsection{Implementação do Design de três fases}
+\label{subsec:design_tres_fases}
 
 Num compilador moderno, três componentes principais são aplicados \cite{Lattner2011}, sendo eles:
 
@@ -365,6 +367,7 @@ Porém, esse benefício não fora alcançado em todos os casos já que implement
 compartilhavam código entre si, ou seja, cada uma destas linguagens possuía sua própria implementação de \textit{front end}, otimizador e \textit{back end} \cite{Lattner2011}.
 
 \subsubsection{Representação Intermediária (LLVM IR)}
+\label{subsec:llvm_ir}
 
 A representação intermediária é o aspecto principal do LLVM, sendo a forma que compilador utiliza para representar o código-fonte sendo compilado. É designada para análises de nível intermediário e 
 transformações que são encontradas no setor de otimização de um compilador. Desenhada com objetivos de adicionar suporte para otimizações em tempo de execução não custosas, otimizações interprocedurais, 
@@ -376,12 +379,15 @@ a representação intermediária do LLVM se torna algo possível e viável. Tal 
 já que a completude presente na representação permite que o suporte de uma nova linguagem seja simplificado \cite{Lattner2011}.
 
 \subsection{Vulnerabilidades de memória}
+\label{subsec:vulnerabilidades_memoria}
 
 Segundo o \textit{Microsoft Security Response Center} (MSRC) \cite{MSRC2019}, entre o período de 2004 a 2018 aproximadamente 70\% das vulnerabilidades corrigidas mapeadas a um CVE foram causadas por desenvolvedores 
 que de forma desavisada adicionaram problemas relacionados a vulnerabilidades de memória em seus códigos escritos nas linguagens C e C++. Além disso, a medida que a base de código da Microsoft era incrementada e 
 mais código aberto era utilizado, tal problema continuava a aumentar.
 
 \subsubsection{\textit{Common Weakness Enumeration} (CWE)}
+\label{subsec:cwe}
+
 A \textit{Common Weakness Enumeration} (CWE) consiste em uma lista desenvolvida de forma colaborativa, que relaciona fraquezas recorrentes em software e hardware. No contexto de segurança, 
 uma fraqueza (\textit{weakness}) é uma condição num software, firmware, hardware, ou serviço que, a partir de certas circunstâncias, pode contribuir para a introdução de vulnerabilidades. Fraquezas são identificadas, 
 classificadas, descritas e integradas à lista oficial da CWE (\textit{CWE List}). A compreensão dessas fraquezas que resultam em vulnerabilidades permite que desenvolvedores de software, designers de hardware, 
@@ -400,6 +406,8 @@ Para o escopo deste trabalho, serão consideradas primariamente três vulnerabil
 \end{itemize}
 
 \subsubsection{CWE-401}
+\label{subsec:cwe401}
+
 Conforme a \citeonline{Owasp2026_401}, um vazamento de memória é uma forma não intencionada de consumo de memória, ocorrendo quando o desenvolvedor falha em liberar um bloco de memória alocada quando a mesma não é mais necessária. Sendo dividido, 
 de forma geral, em três cenários:
 
@@ -413,6 +421,7 @@ Processos em nível de núcleo (\textit{Kernel-land Process}), sendo o caso com 
 \end{itemize}
 
 \subsubsection{CWE-415}
+\label{subsec:cwe415}
 
 Com o título de liberação dupla (\textit{double free}), ocorre quando o mesmo endereço de memória é liberado mais de uma vez. Isso acontece pois, quando o programa chama a função de liberação 
 (como a função \textit{free()} da biblioteca stdlib, na linguagem C) utilizando o mesmo endereço de memória como argumento, a estrutura de dados responsável por gerenciar a heap pode ser corrompida, permitindo assim que um 
@@ -420,11 +429,21 @@ usuário malicioso escreva em posições arbitrárias de memória. O impacto de 
 Ao sobrescrever registradores ou endereços específicos de memória, um atacante pode alterar o programa, sendo capaz de injetar e executar códigos arbitrários, resultando, por exemplo, na escalada de privilégios sobre o sistema em um emulador de terminal (OWASP, 2026).
 
 \subsubsection{CWE-416}
+\label{subsec:cwe416}
 
 O \textit{Use After Free} é a referenciação de um endereço de memória que foi desalocado, tal ato gera consequências imprevisíveis no sistema, com resultados que variam desde uma falha abrupta do programa até a execução de códigos e comandos arbitrários, 
 dependendo do contexto e do momento que a vulnerabilidade ocorre. A reutilização de um endereço desalocado, segundo o \textit{Open Web Application Security Project} (OWASP, 2026), é a forma mais simples de corrupção de dados, visto que, neste cenário, 
 o bloco de memória anteriormente liberado pode ser realocado para um novo objeto válido ao longo da execução do programa. Com isso o ponteiro original ainda aponta para esse endereço (se tornando um ponteiro pendente, ou \textit{dangling pointer}), 
 qualquer alteração feita através dele corromperá os dados da nova alocação legítima, gerando a falha imprevisível.
+
+\subsubsection{\textit{Common Vulnerabilities and Exposures} (CVE)}
+\label{subsec:cve}
+
+Criado em 1999 pela corporação MITRE, o programa CVE (\textit{Common Vulnerabilities and Exposures}) visa padronizar a identificação e catalogação de vulnerabilidades de segurança cibernética na indústria de tecnologia \cite{Cve2026}.
+
+\par
+A Lista CVE (\textit{CVE List}) atua como um dicionário onde cada entrada documenta uma falha real detectada em uma versão específica de um software. Após a confirmação, a vulnerabilidade recebe um identificador único composto pelo ano de relato ou atribuição, seguido por um sequencial numérico. 
+Após o processo de adição de uma entrada ao dicionário, plataformas como o \textit{National Vulnerability Database} (NVD) incrementam o registro com dados críticos, como descrição técnica, índice de severidade metrificado pela CVSS (\textit{Common Vulnerability Scoring System}) e causa raiz da falha proveniente da Lista CWE \cite{Cve2026}.
 
 % ---------------------------------------------------------------
 \section{Metodologia da pesquisa bibliográfica}
@@ -642,6 +661,24 @@ Diante das limitações relacionadas ao tratamento de aritmética de ponteiros n
 sendo calculadas através do VSA. Logo, em uma operação como $q=p+1$, o VSA tem a capacidade de verificar se o deslocamento calculado resulta em um endereço válido que a variável $q$ possa assumir. Ao calcular a diferença de endereços abstratos (\textit{a-locs}) entre $p$ e $q$, torna-se viável validar ou impedir a criação de uma aresta interligando tais ponteiros no HOFG. 
 Com isso, a integração de HOFG e VSA atuaria como um filtro, capaz de reduzir a imprecisão da análise realizada pelo \textit{HOFG-Analyser}.
 
+\subsection{Trabalho 2: \textit{LeakGuard: Detecting Memory Leaks Accurately and Scalably}}
+
+O \textit{LeakGuard} tem como objetivo a detecção de vazamentos de memória de forma escalável e precisa, possui fluxo de análise dividido em quatro partes \cite{LeakGuard2025}:
+
+\begin{itemize}
+    \item Fase 1: Pré-processamento do projeto sob teste. Realizado pois softwares reais possuem diversos arquivos de código fonte e configuração de compilação, contendo regras e comandos para a compilação do projeto completo. Enquanto o projeto é compilado, o \textit{LeakGuard} armazena o processo num banco de dados de compilação, sendo utilizado posteriormente.
+    \item Fase 2: Modelagem das funções de alocação e desalocação (\textit{memory allocation/deallocation} - MAD). Detectadas por meio de um processo iterativo, inicializado pela consulta ao grafo de chamadas com objetivo de identificar todas as funções que invocam funções MAD padrão já conhecidas. Após isso, é empregada uma análise de fluxo de dados sensível ao caminho (\textit{path-sensitive}) 
+    para mapear novas funções MAD dentro destas funções chamadoras, refinando os respectivos sumários. Esta etapa é realizada até que nenhum sumário adicional seja incorporado.
+    \item Fase 3: Reconhecimento de funções chamadoras. As funções que realizam chamadas para as funções MAD identificadas na fase 2 são filtradas. Todas as funções que não lidam com operações de memória são ignoradas, partindo do pressuposto lógico de que não pode haver vazamentos em funções que não alocam ou liberam memória.  
+    \item Fase 4: Detecção de vazamentos. É aplicada a execução simbólica sub-restrita (\textit{under-constrained symbolic execution}) e uma análise sensível ao caminho nas funções chamadoras filtradas na fase anterior. Permitindo que haja foco direto da execução simbólica sobre os pontos de interesse. 
+    A ferramenta rastrea o ciclo de vida da memória dinâmica e utiliza um \textit{solver SMT} para verificar se o caminho que gera a falha é realmente viável. Além disso, um mecanismo de análise de escape de ponteiros foi desenvolvido, baseado no fluxo de dados, confirma se a memória foi de fato abandonada ou se seu controle foi transferido para uma variável global, estrutura de dados, parâmetros ou retornos de funções.
+\end{itemize}
+
+Possui como diferencial a modelagem de funções MAD personalizadas, sendo uma das principais motivações para o desenvolvimento da ferramenta. Visto que outras ferramentas apresentam dificuldades na modelagem de tais funções pelo frequente emprego de análises insensíveis ao caminho, que mesclam ramificações do código em uma tentativa de evitar a explosão de estados da função (\textit{path explosion}). Com isso, o próprio rastreamento 
+de ponteiros se torna impreciso, pois as condições reais de atribuições e operações são perdidas ou desconsideradas \cite{LeakGuard2025}.
+
+\par 
+Em contraste, o \textit{LeakGuard} realiza uma análise de fluxo de dados de baixo para cima, sensível ao caminho e ao campo (\textit{field-sensitive}), permitindo rastrear com precisão operações de memória aninhadas e identificar se as alocações dependem de parâmetros condicionais em tempo de execução \cite{LeakGuard2025}.
 
 % ===============================================================
 % CAPÍTULO 3 - DESENVOLVIMENTO
