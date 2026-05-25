@@ -449,7 +449,29 @@ Após o processo de adição de uma entrada ao dicionário, plataformas como o \
 \section{Metodologia da pesquisa bibliográfica}
 \label{sec:metodologia_pesquisa}
 
-Design Science Research
+\par
+A pesquisa bibliográfica foi realizada primariamente no motor de busca Google Acadêmico (\textit{Google Scholar}), utilizando as seguintes strings de busca:
+
+\begin{itemize}
+\item \textit{"memory leak" AND "static analysis"}
+\item \textit{"memory leak" AND "dynamic analysis"}
+\item \textit{("memory safety" OR "memory leak" OR "memory corruption") AND ("empirical study" OR "quantitative analysis") AND "vulnerability"}
+\end{itemize}
+
+\par
+A exclusão de artigos foi guiada por critérios de inclusão e exclusão predefinidos. Foram considerados trabalhos publicados no período entre 2022 e 2026, primariamente em língua inglesa e que abordassem diretamente métodos de identificação de vulnerabilidades de memória.
+
+\par
+Após a busca inicial, técnica de triagem (\textit{screening}) foi empregada, consistindo na avaliação do título e do resumo de cada artigo obtido. Essa etapa resultou na seleção de 11 artigos, focados em métodos de análise para detecção dessas vulnerabilidades. 
+Dentre estes, o trabalho seminal referente ao modelo \textit{Heap Object Flow Graph} (HOFG) ganhou destaque por ter como foco a adaptação da estrutura para a detecção de vulnerabilidades de memória na linguagem C.
+
+\par 
+Em seguida, foram mapeados dos trabalhos seminais referenciadas pelos autores. Essa etapa de pesquisa em cadeia (\textit{snowballing}), totalizando 24 artigos. Contudo, com o modelo HOFG estabelecido como base estrutural, a etapa de leitura recebeu um filtro de exclusão mais restrito, sendo considerados e lidos artigos com ligação direta a base estrutural.
+
+\par
+Por fim, a partir de necessidades conceituais levantadas durante a leitura de tais artigos, busca complementar foi conduzida, utilizando como referência a literatura clássica, livros técnicos e documentações oficiais com o objetivo de obter definições estruturais necessárias.
+
+
 % ---------------------------------------------------------------
 
 \section{Fundamentos}
@@ -626,18 +648,49 @@ Em tal cenário, o \textit{Value-Set} de $S$ é uma \textit{over-approximation},
 Além disso, um \textit{Value-Set} é capaz de representar tanto um conjunto de endereços de memória, quanto um conjunto de valores numéricos. Dessa forma, a $2$-tupla $(2[1, 9], \bot)$ indica o conjunto de valores numéricos $\{1, 3, 5, 7, 9\}$, assim como indica o conjunto de endereços ${(Global, 1), (Global, 3), ... , (Global, 9)}$ \cite{Balakrishnan2007}.
 
 
-
 \section{Métricas de Avaliação}
 \label{sec:metricas_de_avaliacao}
 
 \subsection{Juliet Test Suite}
+\label{sub:juliet_test_suite}
 
 O Juliet Teste Suite é uma coleção de programas escritos em C/C++ e Java, sendo casos de teste sintéticos, isto é, foram desenvolvidas como exemplos de vulnerabilidades caracterizadas.
 \par
+
 A coleção foi desenvolvida pela National Security Agency's Center for Assured Software, estando em domínio público. Segue uma estrutura focada em funções disponíveis na plataforma subjacente e não em bibliotecas de terceiros. 
 Fora desenvolvida no Microsoft Windows, porém boa parte dos programas teste foram desenvolvidos sem a utilização de funções provenientes de uma plataforma ou sistema operacional específica, e, além disso, todos os casos de teste foram compilados.
 
-\subsection{Projetos Open Source}
+\par
+O Juliet Test Suite será utilizado para avaliar a precisão do analisador implementado sob a representação de programa, quantificando a taxa de falsos positivos, falsos negativos, verdadeiros positivos e verdadeiros negativos, bem como o f1 \textit{score}, 
+através da análise de seus casos de teste. Para a avaliação, serão considerados os casos de teste que compõem CWEs com tema principal corrupção de memória, pela natureza do HOFG, bem como CWEs com base em acessar endereços de memória que ultrapassam os limites armazenados de objetos.
+
+\par
+Os CWEs considerados serão:
+\begin{itemize}
+\item CWE-401
+\item CWE-415
+\item CWE-416
+\end{itemize}
+
+\subsection{Estudos de caso}
+\label{sub:estudos_de_caso}
+
+\par
+Além dos casos pertencentes ao \textit{Juliet Test Suite}, que têm como objetivo validar a precisão de detecção do analisador, a avaliação engloba ainda a análise do código-fonte de projetos de código aberto. Essa etapa visa mensurar o custo computacional da própria ferramenta, 
+registrando o consumo máximo de memória RAM, a utilização da CPU e o tempo (em segundos) que o analisador levou para processar os arquivos de cada projeto.
+
+\par
+A seleção dos projetos de código aberto teve como base os critérios de relevância industrial, diversidade de domínios tecnológicos e implementação nativa na linguagem C.
+
+\par
+Os projetos escolhidos foram:
+\begin{itemize}
+\item redis, banco de dados de alto desempenho focado no armazenamento de estruturas em memória.
+\item curl, ferramenta de transferência de dados em rede com a utilização de URLs em protocolos diversos.
+\item sqlite, motor de banco de dados relacional embutido e autônomo, utilizado em aplicações locais e móveis.
+\item musl libc, implementação da biblioteca padrão do C, direcionada a API de chamadas de sistema do Linux.
+\item gcc, compilador da linguagem C do projeto GNU.
+\end{itemize}
 
 % ---------------------------------------------------------------
 \section{Trabalhos relacionados}
@@ -680,14 +733,66 @@ de ponteiros se torna impreciso, pois as condições reais de atribuições e op
 \par 
 Em contraste, o \textit{LeakGuard} realiza uma análise de fluxo de dados de baixo para cima, sensível ao caminho e ao campo (\textit{field-sensitive}), permitindo rastrear com precisão operações de memória aninhadas e identificar se as alocações dependem de parâmetros condicionais em tempo de execução \cite{LeakGuard2025}.
 
+\subsection{Trabalho 3: \textit{Infer - An Automatic Program Verifier for Memory Safety of C Programs}}
+
+\textit{Infer} é uma ferramenta comercial avançada voltada para verificação de segurança de memória de programas escritos em C. Realiza uma análise profunda de memória (\textit{deep-heap analysis}) sem exigir anotações prévias ou modificações por parte do programador, permitindo a realização de análises de forma automatizada. Possui como base primária dois conceitos centrais, a bi-abdução (\textit{bi-abduction}), e a análise composicional.
+
+\par
+A bi-abdução, sendo um processo matemático de inferência, é utilizado pelo \textit{Infer} com o objetivo de deduzir como uma determinada função opera sobre a memória dinâmica. O feito é realizado por meio da resolução lógica de duas partes do estado da memória, o \textit{anti-frame}, representando a porção de memória que um procedimento precisa para ser executado com segurança, mas que não esta presente no estado atual da análise, e o \textit{frame}, 
+representando porções de memória que existem no contexto atual, mas que não serão tocadas ou alteradas pela operação da função.
+
+\par
+Graças a capacidade de sintetizar as especificações utilizando a bi-abdução, o \textit{Infer} realiza uma análise composicional, em que cada procedimento é analisado de forma independente de seus chamadores, numa abordagem de baixo para cima (\textit{bottom-up}). O objetivo principal de tal análise é descobrir automaticamente invariantes que descrevem o uso das estruturas de dados do programa, a fim de provar a segurança de ponteiros, sem exigir que o programador escreva especificações manuais. 
+
+\par 
+Com tal análise, benefícios são alcançados para a verificação de software:
+\begin{itemize}
+\item
+Capacidade de analisar códigos incompletos: Fragmentos isolados de código podem ser analisados sem a necessidade de criar um contexto específico ou uma função principal (\textit{main}) simulada apenas para que a análise possa ser realizada.
+
+\item 
+Potencial para escalabilidade: A partir da análise dos procedimentos de forma isolada, se torna mais fácil executar a análise de forma paralela (aproveitando múltiplos núcleos de processamento) e aplicá-la a bases de código de maiores tamanhos. Além disso, o algoritmo é naturalmente incremental, o que permite que alterações futuras no código exijam uma nova análise somente das funções afetadas, mantendo os resultados das demais.
+
+\item
+Imprecisão graciosa (\textit{graceful imprecision}): Com a abordagem composicional, ao serem encontradas limitações e não ser possível obter um resultado preciso para uma função específica, tal falha é isolada. O que permite que o sistema continue a oferecer provas lógicas precisas para o restante dos procedimentos do programa.
+\end{itemize}
+
+\par
+O \textit{Infer} processa um projeto através de três etapas principais:
+\begin{itemize}
+\item \textit{InferCapture}, responsável por converter o código para uma representação interna lógica.
+\item \textit{InferAnalyser}, responsável por conduzir a verificação matemática profunda utilizando a bi-abdução.
+\item \textit{InferPrint}, que emite relatórios de erros extraídos de provas falhas e listas de bugs em formatos diversos.
+\end{itemize}
+
+
 % ===============================================================
 % CAPÍTULO 3 - DESENVOLVIMENTO
 % ===============================================================
 \chapter{Desenvolvimento}
 \label{cap:desenvolvimento}
+
+O desenvolvimento deste trabalho de conclusão de curso esta dividida em duas seções, sendo a primeira, \ref{sec:solucao} a solução proposta, na qual é discorrido o que será realizado para que os objetivos sejam alcançados, e a seção \ref{sec:cronograma} cronograma de trabalho, expandindo como será realizada cada etapa da solução, bem como serão apresentados prazos para cada fase.
+
 % ---------------------------------------------------------------
 \section{Solução proposta}
 \label{sec:solucao}
+
+\par
+A solução proposta gira em torno de um método de análise estática derivado do HOFG, incrementado pelo VSA, tal método unifica o rastreamento direcional do Grafo de Fluxo de Objetos em \textit{Heap}, com a abstração numérica do VSA. Com essa modelagem, cada nó de origem do HOFG é mapeado para um \textit{a-loc} correspondente, cujo intervalo de memória é rastreado através de \textit{value-sets}. 
+Durante a análise, os sumários de função do HOFG são expandidos para contemplar as mutações matemáticas desses \textit{value-sets} resultantes dos nós adjacentes.
+
+\par
+Com a introdução dessa camada de análise abstrata, é adicionada a detecção de vulnerabilidades não cobertas pelo HOFG tradicional. Atribuições tais como $p = q$ são monitoradas para identificar a perda de referência da \textit{a-loc} original de $p$, configurando vulnerabilidade de memória. De forma paralela, operações aritméticas envolvendo ponteiros (exemplo: $q = q + 1$) deixam de ser uma ponta solta, o VSA valida o passo (\textit{stride})
+e a congruência do intervalo matemático resultante. Se o novo \textit{value-set} violar os limites estabelecidos para a \textit{a-loc} de $q$, a análise aponta acesso a endereço de memória indevido e possível corrupção de memória.
+
+\par
+Uma ferramenta de análise estática, cujo motor principal é baseado na construção do grafo HOFG integrado ao VSA será implementada, tal ferramenta terá como objetivo analisar o código-fonte de programas escritos na linguagem C, convertendo o código-fonte para a representação HOFG-VSA e realizando a busca por vazamentos a partir do grafo obtido. 
+Ao contrário da abordagem monolítica adotada pelo \textit{HOFG-Analyser} original, a nova ferramenta implementará um processamento modular de arquivos. Cada arquivo de código será convertido individualmente para o LLVM IR, do qual serão extraídos sumários de funções e objetos. Tal processamento individual permite economia de consumo de memória RAM, viabilizando a análise de projetos de larga escala, com centenas de milhares ou milhões de linhas de código (LoC).
+
+\par
+O desenvolvimento será realizado utilizando a linguagem Zig (versão 0.16). Embora o Zig ainda não tenha atingido sua versão estável, ele oferece recursos úteis para a arquitetura do analisador. Seu controle explícito e refinado no gerenciamento de memória otimiza o ciclo de vida dos nós que serão alocados e desalocados durante a montagem e análise do grafo. Além disso, a interoperabilidade nativa com a linguagem C permite a integração direta com a API LLVM-C, 
+o que possibilita a leitura de arquivos bitcode e extração das instruções responsáveis por operações na memória \textit{Heap}.
 
 % ---------------------------------------------------------------
 \section{Cronograma de trabalho}
