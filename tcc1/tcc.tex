@@ -381,6 +381,16 @@ já que a completude presente na representação permite que o suporte de uma no
 \subsection{Vulnerabilidades de memória}
 \label{subsec:vulnerabilidades_memoria}
 
+Uma vulnerabilidade, segundo a CVE, é uma ou mais instâncias de fraquezas em um produto que podem ser exploradas, causando impactos negativos na confidencialidade, integridade e disponibilidade do produto, 
+um conjunto de condições ou comportamentos que permitem a violação de políticas de segurança implícitas ou explícitas.
+
+\par
+No contexto do desenvolvimento de software e análise de código, as vulnerabilidades de memória consistem em falhas no gerenciamento de espaço de endereçamento de um programa. Para o escopo deste trabalho, 
+a análise concentra-se especificamente nas instâncias de fraquezas que afetam os dados alocados dinamicamente na memória \textit{Heap}. Na literatura, essas anomalias - que frequentemente envolvem o controle inadequado de ponteiros - são comumente 
+referidas como ``corrupção de memória`` ou ``vazamentos de memória``. No entanto, o termo mais abrangente ``vulnerabilidades de memória`` foi escolhido para utilização para evitar ambiguidades com classificações específicas, como a CWE-401 (\textit{Memory Leak}), 
+uma vez que o analisador proposto visa englobar anomalias que afetam a memória dinâmica.
+
+\par
 Segundo o \textit{Microsoft Security Response Center} (MSRC) \cite{MSRC2019}, entre o período de 2004 a 2018 aproximadamente 70\% das vulnerabilidades corrigidas mapeadas a um CVE foram causadas por desenvolvedores 
 que de forma desavisada adicionaram problemas relacionados a vulnerabilidades de memória em seus códigos escritos nas linguagens C e C++. Além disso, a medida que a base de código da Microsoft era incrementada e 
 mais código aberto era utilizado, tal problema continuava a aumentar.
@@ -797,6 +807,56 @@ o que possibilita a leitura de arquivos bitcode e extração das instruções re
 % ---------------------------------------------------------------
 \section{Cronograma de trabalho}
 \label{sec:cronograma}
+
+O cronograma a seguir apresenta, no formato de diagrama de Gantt, as atividades previstas para o desenvolvimento do TCC2, distribuídas ao longo das semanas do semestre.
+
+\begin{figure}[htb]
+    \centering
+    \caption{Cronograma de atividades -- Diagrama de Gantt}
+    \label{fig:gantt}
+    \begin{ganttchart}[
+        hgrid,
+        vgrid,
+        x unit=0.72cm,
+        y unit title=0.6cm,
+        y unit chart=0.7cm,
+        title height=1,
+        bar height=0.5,
+        bar label font=\scriptsize,
+        title label font=\small,
+        milestone label font=\scriptsize\itshape,
+        group label font=\scriptsize\bfseries,
+        bar/.append style={fill=blue!40},
+        group/.append style={draw=black, fill=blue!70},
+        milestone/.append style={fill=red!70},
+    ]{1}{16}
+        % Título: semanas de 1 a 16
+        \gantttitle{Semanas}{16} \\
+        \gantttitlelist{1,...,16}{1} \\
+
+        % Grupo 1: Revisão e Planejamento
+        \ganttgroup{Fase 1: Revisão Bibliográfica}{1}{2} \\
+        \ganttbar{Revisão bibliográfica}{1}{2} \\
+
+        % Grupo 2: Desenvolvimento
+        \ganttgroup{Fase 2: Desenvolvimento}{3}{11} \\
+        \ganttbar{Arquitetura}{3}{3} \\
+        \ganttbar{Leitura de arquivos}{4}{6} \\
+        \ganttbar{Conversão para HOFG-VSA}{7}{8} \\
+        \ganttbar{Algoritmo de poda}{9}{9} \\
+        \ganttbar{Geração de alertas}{10}{10} \\
+        \ganttmilestone{Protótipo funcional}{11} \\
+
+        % Grupo 3: Testes e Finalização
+        \ganttgroup{Fase 3: Validação e análise}{12}{16} \\
+        \ganttbar{Ajustes e correções}{12}{12} \\
+        \ganttbar{Validação sob Juliet Test Suite}{13}{13} \\
+        \ganttbar{Validação sob projetos}{14}{14} \\
+        \ganttbar{Redação final do TCC2}{13}{16} \\
+        \ganttmilestone{Entrega final}{16} \\
+    \end{ganttchart}
+    \legend{Fonte: Elaborado pelo autor (2026)}
+\end{figure}
 
 
 % ---------------------------------------------------------------
