@@ -75,7 +75,7 @@
 \autor{Lucas Zacarias Martins Neves}
 \local{São Paulo}
 \data{2026}
-\orientador{Prof. Nome do Orientador}
+\orientador{Prof. Leonardo Massayuki Takuno}
 % \coorientador{Prof. Nome do Coorientador} % Descomente se houver coorientador
 
 \instituicao{%
@@ -168,7 +168,7 @@
 \label{cap:Contexto}
 
 Em um levantamento realizado pela \textit{Microsoft Security Response Center} (MSRC) realizado em 2019 \cite{MSRC2019},
-foi acurado que aproximadamente 70\% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
+foi apurado que aproximadamente 70\% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
 tem ligação a falhas de segurança de memória nas linguagens C e C++, causadas por desenvolvedores que inseriram tais erros em seus códigos
 sem perceber. Além disso, a situação teve piora não somente com o incremento da base de código da empresa, mas também com a adição de mais 
 código aberto aos seus projetos.
@@ -196,7 +196,7 @@ e até mesmo com a existência de linguagens de programação que tem como objet
 a reescrita de projetos inteiros frequentemente apresenta custos excessivos de portabilidade. Diante disso, a manutenção e o desenvolvimento na linguagem original se tornam necessários, 
 cenário este que pode ocorrer em projetos construídos em linguagens de programação inseguras, como C e C++.
 \par
-Para garantir maior segurança de tais projetos, um analisador de código pode ser desenvolvido como solução, com foco na detecção de potenciais potenciais vazamentos e 
+Para garantir maior segurança de tais projetos, um analisador de código pode ser desenvolvido como solução, com foco na detecção de potenciais vazamentos e 
 problemas derivados da má gestão de dados alocados dinamicamente. Embora a análise estática de códigos-fonte apresente limitações — dentre elas, as limitações apresentadas por \citeonline{Balakrishnan2007} —, 
 tais abordagens continuam sendo úteis no ciclo de desenvolvimento de software, havendo como uma de suas principais justificativas para adoção a possibilidade de identificar e mitigar vulnerabilidades 
 ainda nas fases iniciais do projeto \cite{spa}. 
@@ -209,7 +209,7 @@ através de algoritmos.
 \section{Hipótese}
 \label{sec:Hipotese}
 
-A hipótese do projeto esta numa integração entre dois métodos de análise estática. 
+A hipótese do projeto está numa integração entre dois métodos de análise estática. 
 \par
 O primeiro método é o \textit{Heap Object Flow Graph} (HOFG) \cite{MadhavC2023}, sendo uma representação do fluxo dos blocos de memória alocados na \textit{Heap}, na qual os vértices do grafo são obtidos 
 a partir das variáveis do programa que são ponteiros para a memória \textit{Heap}.
@@ -236,7 +236,7 @@ Os objetivos deste trabalho dividem-se em um objetivo principal e objetivos secu
 \subsection{Objetivo geral}
 \label{sec:Objetivo_geral}
 
-O objetivo principal do trabalho é implementar um analisador estático de código para a linguagem C, com foco na detecção de vulnerabilidades de memória, através da integração da representação \textit{Heap Object Flow Graph} (HOFG) com técnicas de \textit{Value-Set Analysis} (VSA) para o rastreamento preciso de ponteiros (\textit{offset} e \textit{range}).
+O objetivo principal do trabalho é demonstrar a viabilidade da integração da representação \textit{Heap Object Flow Graph} (HOFG) com técnicas de \textit{Value-Set Analysis} (VSA) para o rastreamento preciso de ponteiros (\textit{offset} e \textit{range}), com foco na detecção de vulnerabilidades de memória em análise estática de código para a linguagem C.
 
 \subsection{Objetivos específicos}
 \label{sec:Objetivos_especificos}
@@ -271,7 +271,7 @@ A memória \textit{Heap} é uma área da memória virtual de um processo utiliza
 em direção a endereços de memória mais altos. Para cada processo, o \textit{kernel} mantém uma variável brk (sendo pronunciada \textit{break}, ou quebra) que aponta para o topo da \textit{Heap} \cite{Bryant2010}. 
 Um alocador dinâmico gerencia a \textit{Heap} como uma coleção de blocos de tamanhos variados. Cada bloco é um segmento (\textit{chunk}) contínuo de memória virtual que pode estar em dois estados: alocado ou livre. 
 Um bloco alocado é reservado para uso de forma explícita pela aplicação, permanecendo neste estado até que seja liberado, tanto de forma explícita, pelo aplicativo, quanto de forma implícita, pelo próprio alocador de memória (como em sistemas com \textit{Garbage Collection}). 
-E, por sua vez, um bloco livre está disponível para ser alocado, e permanecesse assim até que, de forma explícita, seja alocado atráves de uma nova requisição de alocação feita pela aplicação. O fato de que, por vezes, o tamanho exato de certas estruturas de dados que 
+E, por sua vez, um bloco livre está disponível para ser alocado, e permanece assim até que, de forma explícita, seja alocado através de uma nova requisição de alocação feita pela aplicação. O fato de que, por vezes, o tamanho exato de certas estruturas de dados que 
 serão utilizados em um programa só se tornam conhecidos até que o mesmo seja executado se torna o principal motivo para a utilização da alocação dinâmica de memória e, consequentemente, da memória \textit{Heap} \cite{Bryant2010}.
 
 \subsection{Análise estática}
@@ -282,14 +282,14 @@ comportamento do programa a partir de abstrações e aproximações para mapear 
 
 \subsubsection{Árvore sintática abstrata (AST)}
 
-Segundo \citeonline{Compilers2009}, as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, possuem para uma expressão, cada nó interno de uma expressão representa um operador, enquanto os seus nós filhos representam os respectivos operandos. 
+Segundo \citeonline{Compilers2009}, as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, nas quais cada nó interno representa um operador da expressão, e seus nós filhos representam os respectivos operandos.
 Além disso, as ASTs se assemelham às árvores de derivação até certo nível, diferenciando-se pelo fato de que os nós interiores da AST representam construções de programação, ao passo que na árvore de derivação os nós 
 interiores representam símbolos não-terminais. Outra diferença é a ausência de símbolos não-terminais auxiliares, tais como aqueles que representam termos, fatores, ou outras variações de expressões, na AST. 
 Essa falta ocorre pois tais detalhes sintáticos são desnecessários para a fase de tradução, resultando em uma representação mais condensada e focada na semântica do código-fonte.
 
 \subsubsection{Forma de atribuição única estática (SSA)}
 
-O SSA (\textit{Static Single Assignment}) é uma forma de representação de código intermediário, tem como ponto chave as características de que cada definição de variável possui um nome distinto, e de que cada uso refere-se a apenas uma única definição, 
+O SSA (\textit{Static Single Assignment}) é uma forma de representação de código intermediário, tem como ponto-chave as características de que cada definição de variável possui um nome distinto, e de que cada uso refere-se a apenas uma única definição, 
 sendo essas também as duas restrições da representação, significando que, caso um programa atenda tais restrições, tal programa estará em sua forma SSA. Para garantir essa singularidade, variáveis que sofrem múltiplas atribuições no código-fonte são renomeadas, 
 sendo criadas versões distintas para cada nova atribuição (por exemplo, $v1$, $v2$, $v3$) \cite{Singer2022}. 
 \par
@@ -312,7 +312,7 @@ análise estática sendo realizada, resultando em inconsistências.
 O fato de que códigos-fonte são modificados pelo compilador durante a compilação, realizando otimizações e adicionando instrumentações de código, sendo itens não encontrados pelas 
 ferramentas que analisam tais códigos.
 \item 
-O código-fonte de um programa pode ser escrito em mais de uma linguagem de programação, tornando mais dificultosa o design de tais ferramentas de análise, pois precisam dar suporte a 
+O código-fonte de um programa pode ser escrito em mais de uma linguagem de programação, tornando mais dificultoso o design de tais ferramentas de análise, pois precisam dar suporte a 
 múltiplas linguagens de programação, cada uma contendo suas características e peculiaridades.
 \item
 E, mesmo em um código-fonte escrito em apenas uma linguagem de programação de alto nível, tal código pode conter código escrito em \textit{assembly} em certos locais. 
@@ -325,7 +325,7 @@ Mesmo com as limitações presentes nos métodos de análise estática de códig
 Um dos principais motivos para sua adoção é o fato de que tais métodos permitem que vulnerabilidades sejam encontradas ainda nas fases iniciais do projeto, viabilizando a correção prévia e evitando custos elevados nas etapas finais ou em produção \cite{spa}.
 \par
 Além disso, apesar do código-fonte ser modificado em tempo de compilação através das otimizações e instrumentações e existindo a possibilidade de erros gerados pelo compilador para arquiteturas específicas, a maioria das falhas reside no código original. 
-Sendo apontado pela Microsoft, na qual 70\% das falhas corrigidas adereçadas a um CVE em seus softwares tinham como origem vulnerabilidades de memória geradas pelos próprios desenvolvedores, estando presentes e detectáveis em seus respectivos códigos-fonte \cite{MSRC2019}.
+Sendo apontado pela Microsoft, na qual 70\% das falhas corrigidas vinculadas a um CVE em seus softwares tinham como origem vulnerabilidades de memória geradas pelos próprios desenvolvedores, estando presentes e detectáveis em seus respectivos códigos-fonte \cite{MSRC2019}.
 \par
 Por fim, quanto ao uso de bibliotecas pré-compiladas, bem como a mescla de múltiplas linguagens de programação e trechos escritos em linguagem \textit{assembly}, os métodos de análise estática costumam adotar abordagens conservadoras (isto é, seguras). Ao serem encontrados, 
 tais chamadas para funções e trechos inalcançáveis geram alertas durante a análise, lidando com o desconhecido como se pertencesse ao pior cenário possível. Embora essa característica gere falsos positivos durante a avaliação, é cumprido o propósito de evitar falsos negativos. 
@@ -354,7 +354,7 @@ Num compilador moderno, três componentes principais são aplicados \cite{Lattne
 
 \begin{itemize}
 \item
-O front end, responsável por analisar o código-fonte, chegar erros e construir a árvore de sintaxe abstrata (AST) específica para a linguagem em questão.
+O front end, responsável por analisar o código-fonte, checar erros e construir a árvore de sintaxe abstrata (AST) específica para a linguagem em questão.
 \item
 O otimizador, responsável por realizar transformações de código numa tentativa de melhorar o tempo de execução do código, realizando, por exemplo, remoções de itens redundantes que seriam computados.
 \item
@@ -476,7 +476,7 @@ Após a busca inicial, técnica de triagem (\textit{screening}) foi empregada, c
 Dentre estes, o trabalho seminal referente ao modelo \textit{Heap Object Flow Graph} (HOFG) ganhou destaque por ter como foco a adaptação da estrutura para a detecção de vulnerabilidades de memória na linguagem C.
 
 \par 
-Em seguida, foram mapeados dos trabalhos seminais referenciadas pelos autores. Essa etapa de pesquisa em cadeia (\textit{snowballing}), totalizando 24 artigos. Contudo, com o modelo HOFG estabelecido como base estrutural, a etapa de leitura recebeu um filtro de exclusão mais restrito, sendo considerados e lidos artigos com ligação direta a base estrutural.
+Em seguida, foram mapeados os trabalhos seminais referenciadas pelos autores. Essa etapa de pesquisa em cadeia (\textit{snowballing}), totalizando 24 artigos. Contudo, com o modelo HOFG estabelecido como base estrutural, a etapa de leitura recebeu um filtro de exclusão mais restrito, sendo considerados e lidos artigos com ligação direta a base estrutural.
 
 \par
 Por fim, a partir de necessidades conceituais levantadas durante a leitura de tais artigos, busca complementar foi conduzida, utilizando como referência a literatura clássica, livros técnicos e documentações oficiais com o objetivo de obter definições estruturais necessárias.
@@ -609,7 +609,7 @@ O \textit{Heap Object Flow Graph} é definido como um grafo orientado $HOFG(V, E
 
 O grafo do HOFG é construído de acordo com as regras descritas no \ref{alg:generate_hofg}. As condições que anotam as arestas do HOFG são derivadas das transições entre os blocos básicos e dos identificadores de blocos básicos que possuem associação com as instruções do programa \cite{MadhavC2023}.
 \par 
-O número de vértices presente no HOFG depende da quantidade real de instruções que possuem ponteiros para a memória \textit{Heap} como operandos. Considerando $N$ como o total de linhas de código (LoC) do programa, o pior caso a ocorre quando cada instrução possui um objeto alocado na memória \textit{Heap} como operando, 
+O número de vértices presente no HOFG depende da quantidade real de instruções que possuem ponteiros para a memória \textit{Heap} como operandos. Considerando $N$ como o total de linhas de código (LoC) do programa, o pior caso ocorre quando cada instrução possui um objeto alocado na memória \textit{Heap} como operando, 
 o que limita a complexidade de espaço a $O(N)$ \cite{MadhavC2023}.
 \par
 Enquanto isso, o número de arestas no grafo depende do caminho de fluxo do objeto, isto é, do número de vezes que o seu valor é utilizado ou copiado após a alocação. Dessa forma, esse número varia para cada objeto alocado no programa. E, assim como ocorre com o número de vértices, a complexidade espacial referente ao 
@@ -630,7 +630,7 @@ o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que
 \subsubsection{\textit{Value-Set}}
 
 Para representar a junção de endereços de memória e valores numéricos, o VSA utiliza uma estrutura matemática chamada \textit{Value-Set} (conjunto de valores). Um \textit{Value-Set} é representado com uma tupla de intervalos com passo (\textit{strided intervals}, ou SI) de $k$-bits, 
-simbolizando o conjunto de deslocalementos (\textit{offsets}) em cada região de memória. Um intervalos com passo de $k$-bit $s[l, u]$ representa o conjunto de números inteiros \cite{Balakrishnan2007}:
+simbolizando o conjunto de deslocamentos (\textit{offsets}) em cada região de memória. Um intervalos com passo de $k$-bit $s[l, u]$ representa o conjunto de números inteiros \cite{Balakrishnan2007}:
 
 \begin{equation}
     \{ i \in [-2^{k-1}, 2^{k-1}] \mid l \leq i \leq u, i \equiv l \pmod{s} \}
@@ -664,11 +664,11 @@ Além disso, um \textit{Value-Set} é capaz de representar tanto um conjunto de 
 \subsection{Juliet Test Suite}
 \label{sub:juliet_test_suite}
 
-O Juliet Teste Suite é uma coleção de programas escritos em C/C++ e Java, sendo casos de teste sintéticos, isto é, foram desenvolvidas como exemplos de vulnerabilidades caracterizadas.
+O Juliet Test Suite é uma coleção de programas escritos em C/C++ e Java, sendo casos de teste sintéticos, isto é, foram desenvolvidas como exemplos de vulnerabilidades caracterizadas \cite{Boland2012}.
 \par
 
 A coleção foi desenvolvida pela National Security Agency's Center for Assured Software, estando em domínio público. Segue uma estrutura focada em funções disponíveis na plataforma subjacente e não em bibliotecas de terceiros. 
-Fora desenvolvida no Microsoft Windows, porém boa parte dos programas teste foram desenvolvidos sem a utilização de funções provenientes de uma plataforma ou sistema operacional específica, e, além disso, todos os casos de teste foram compilados.
+Fora desenvolvida no Microsoft Windows, porém boa parte dos programas teste foram desenvolvidos sem a utilização de funções provenientes de uma plataforma ou sistema operacional específica, e, além disso, todos os casos de teste foram compilados \cite{Boland2012}.
 
 \par
 O Juliet Test Suite será utilizado para avaliar a precisão do analisador implementado sob a representação de programa, quantificando a taxa de falsos positivos, falsos negativos, verdadeiros positivos e verdadeiros negativos, bem como o f1 \textit{score}, 
@@ -695,11 +695,8 @@ A seleção dos projetos de código aberto teve como base os critérios de relev
 \par
 Os projetos escolhidos foram:
 \begin{itemize}
-\item redis, banco de dados de alto desempenho focado no armazenamento de estruturas em memória.
-\item curl, ferramenta de transferência de dados em rede com a utilização de URLs em protocolos diversos.
-\item sqlite, motor de banco de dados relacional embutido e autônomo, utilizado em aplicações locais e móveis.
-\item musl libc, implementação da biblioteca padrão do C, direcionada a API de chamadas de sistema do Linux.
 \item gcc, compilador da linguagem C do projeto GNU.
+\item sqlite, motor de banco de dados relacional embutido e autônomo, utilizado em aplicações locais e móveis.
 \end{itemize}
 
 % ---------------------------------------------------------------
@@ -734,7 +731,7 @@ O \textit{LeakGuard} tem como objetivo a detecção de vazamentos de memória de
     para mapear novas funções MAD dentro destas funções chamadoras, refinando os respectivos sumários. Esta etapa é realizada até que nenhum sumário adicional seja incorporado.
     \item Fase 3: Reconhecimento de funções chamadoras. As funções que realizam chamadas para as funções MAD identificadas na fase 2 são filtradas. Todas as funções que não lidam com operações de memória são ignoradas, partindo do pressuposto lógico de que não pode haver vazamentos em funções que não alocam ou liberam memória.  
     \item Fase 4: Detecção de vazamentos. É aplicada a execução simbólica sub-restrita (\textit{under-constrained symbolic execution}) e uma análise sensível ao caminho nas funções chamadoras filtradas na fase anterior. Permitindo que haja foco direto da execução simbólica sobre os pontos de interesse. 
-    A ferramenta rastrea o ciclo de vida da memória dinâmica e utiliza um \textit{solver SMT} para verificar se o caminho que gera a falha é realmente viável. Além disso, um mecanismo de análise de escape de ponteiros foi desenvolvido, baseado no fluxo de dados, confirma se a memória foi de fato abandonada ou se seu controle foi transferido para uma variável global, estrutura de dados, parâmetros ou retornos de funções.
+    A ferramenta rastreia o ciclo de vida da memória dinâmica e utiliza um \textit{solver SMT} para verificar se o caminho que gera a falha é realmente viável. Além disso, um mecanismo de análise de escape de ponteiros foi desenvolvido, baseado no fluxo de dados, confirma se a memória foi de fato abandonada ou se seu controle foi transferido para uma variável global, estrutura de dados, parâmetros ou retornos de funções.
 \end{itemize}
 
 Possui como diferencial a modelagem de funções MAD personalizadas, sendo uma das principais motivações para o desenvolvimento da ferramenta. Visto que outras ferramentas apresentam dificuldades na modelagem de tais funções pelo frequente emprego de análises insensíveis ao caminho, que mesclam ramificações do código em uma tentativa de evitar a explosão de estados da função (\textit{path explosion}). Com isso, o próprio rastreamento 
@@ -745,17 +742,17 @@ Em contraste, o \textit{LeakGuard} realiza uma análise de fluxo de dados de bai
 
 \subsection{Trabalho 3: \textit{Infer - An Automatic Program Verifier for Memory Safety of C Programs}}
 
-\textit{Infer} é uma ferramenta comercial avançada voltada para verificação de segurança de memória de programas escritos em C. Realiza uma análise profunda de memória (\textit{deep-heap analysis}) sem exigir anotações prévias ou modificações por parte do programador, permitindo a realização de análises de forma automatizada. Possui como base primária dois conceitos centrais, a bi-abdução (\textit{bi-abduction}), e a análise composicional.
+\textit{Infer} é uma ferramenta comercial avançada voltada para verificação de segurança de memória de programas escritos em C. Realiza uma análise profunda de memória (\textit{deep-heap analysis}) sem exigir anotações prévias ou modificações por parte do programador, permitindo a realização de análises de forma automatizada. Possui como base primária dois conceitos centrais, a bi-abdução (\textit{bi-abduction}), e a análise composicional \cite{Infer2011}.
 
 \par
 A bi-abdução, sendo um processo matemático de inferência, é utilizado pelo \textit{Infer} com o objetivo de deduzir como uma determinada função opera sobre a memória dinâmica. O feito é realizado por meio da resolução lógica de duas partes do estado da memória, o \textit{anti-frame}, representando a porção de memória que um procedimento precisa para ser executado com segurança, mas que não esta presente no estado atual da análise, e o \textit{frame}, 
-representando porções de memória que existem no contexto atual, mas que não serão tocadas ou alteradas pela operação da função.
+representando porções de memória que existem no contexto atual, mas que não serão tocadas ou alteradas pela operação da função \cite{Calcagno2011}.
 
 \par
-Graças a capacidade de sintetizar as especificações utilizando a bi-abdução, o \textit{Infer} realiza uma análise composicional, em que cada procedimento é analisado de forma independente de seus chamadores, numa abordagem de baixo para cima (\textit{bottom-up}). O objetivo principal de tal análise é descobrir automaticamente invariantes que descrevem o uso das estruturas de dados do programa, a fim de provar a segurança de ponteiros, sem exigir que o programador escreva especificações manuais. 
+Graças a capacidade de sintetizar as especificações utilizando a bi-abdução, o \textit{Infer} realiza uma análise composicional, em que cada procedimento é analisado de forma independente de seus chamadores, numa abordagem de baixo para cima (\textit{bottom-up}). O objetivo principal de tal análise é descobrir automaticamente invariantes que descrevem o uso das estruturas de dados do programa, a fim de provar a segurança de ponteiros, sem exigir que o programador escreva especificações manuais \cite{Infer2011}. 
 
 \par 
-Com tal análise, benefícios são alcançados para a verificação de software:
+Com tal análise, benefícios são alcançados para a verificação de software \cite{Infer2011}:
 \begin{itemize}
 \item
 Capacidade de analisar códigos incompletos: Fragmentos isolados de código podem ser analisados sem a necessidade de criar um contexto específico ou uma função principal (\textit{main}) simulada apenas para que a análise possa ser realizada.
@@ -768,7 +765,7 @@ Imprecisão graciosa (\textit{graceful imprecision}): Com a abordagem composicio
 \end{itemize}
 
 \par
-O \textit{Infer} processa um projeto através de três etapas principais:
+O \textit{Infer} processa um projeto através de três etapas principais \cite{Infer2011}:
 \begin{itemize}
 \item \textit{InferCapture}, responsável por converter o código para uma representação interna lógica.
 \item \textit{InferAnalyser}, responsável por conduzir a verificação matemática profunda utilizando a bi-abdução.
@@ -782,7 +779,7 @@ O \textit{Infer} processa um projeto através de três etapas principais:
 \chapter{Desenvolvimento}
 \label{cap:desenvolvimento}
 
-O desenvolvimento deste trabalho de conclusão de curso esta dividida em duas seções, sendo a primeira, \ref{sec:solucao} a solução proposta, na qual é discorrido o que será realizado para que os objetivos sejam alcançados, e a seção \ref{sec:cronograma} cronograma de trabalho, expandindo como será realizada cada etapa da solução, bem como serão apresentados prazos para cada fase.
+O desenvolvimento deste trabalho de conclusão de curso está dividido em duas seções, sendo a primeira, \ref{sec:solucao} a solução proposta, na qual é discorrido o que será realizado para que os objetivos sejam alcançados, e a seção \ref{sec:cronograma} cronograma de trabalho, expandindo como será realizada cada etapa da solução, bem como serão apresentados prazos para cada fase.
 
 % ---------------------------------------------------------------
 \section{Solução proposta}
