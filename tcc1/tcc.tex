@@ -37,6 +37,7 @@
 \usepackage[alf]{abntex2cite}       % Citações ABNT
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{minted}
 
 % Traduções para o padrão em português (ABNT)
 \floatname{algorithm}{Algoritmo}
@@ -128,16 +129,25 @@
 
 \vspace{\onelineskip}
 
+Vulnerabilidades de segurança de memória em linguagens como C e C++ representam uma parcela significativa das falhas críticas de software na indústria. 
+Ferramentas de análise estática são fundamentais para a detecção precoce dessas falhas, mas frequentemente esbarram em limitações, como a alta taxa de falsos positivos. 
+O modelo estrutural \textit{Heap Object Flow Graph} (HOFG) destaca-se por rastrear o fluxo de blocos alocados dinamicamente na memória \textit{Heap}; contudo, sua implementação original apresenta dificuldades no tratamento de aritmética de ponteiros, 
+resultando em cerca de 14\% de imprecisões em testes preliminares. Para mitigar essa limitação, este trabalho propõe o desenvolvimento de um analisador estático que integra o HOFG com a técnica de interpretação abstrata \textit{Value-Set Analysis} (VSA). 
+A ferramenta, construída na linguagem Zig e operando sobre a Representação Intermediária do compilador LLVM (LLVM IR), adota um processamento modular de arquivos para otimizar o consumo de memória RAM. Nessa arquitetura, o VSA atua como um validador numérico sobre o grafo, estimando os limites de deslocamento (\textit{offsets} e \textit{ranges}) 
+que cada endereço abstrato pode assumir e impedindo a formação de arestas de fluxo inválidas. A avaliação da precisão e eficiência da solução proposta será conduzida utilizando casos sintéticos do \textit{Juliet Test Suite} e análises de projetos reais de código aberto. O objetivo central é demonstrar que a unificação entre o rastreamento direcional do HOFG e a 
+abstração numérica do VSA permite reduzir consideravelmente os falsos positivos na detecção de vulnerabilidades de memória (tais como CWE-401, CWE-415 e CWE-416), garantindo maior segurança e escalabilidade no ciclo de desenvolvimento de software.
+
+
 \noindent
-\textbf{Palavras-chave}: Vazamento de memória, HOFG, VSA.
+\textbf{Palavras-chave}: Análise estática, Vulnerabilidades de memória, HOFG.
 \end{resumo}
 
 % ---------------------------------------------------------------
 % LISTA DE ILUSTRAÇÕES
 % ---------------------------------------------------------------
-% \pdfbookmark[0]{\listfigurename}{lof}
-% \listoffigures*
-% \cleardoublepage
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
 
 % ---------------------------------------------------------------
 % LISTA DE TABELAS
@@ -145,6 +155,38 @@
 % \pdfbookmark[0]{\listtablename}{lot}
 % \listoftables*
 % \cleardoublepage
+
+\pdfbookmark[0]{Lista de Abreviaturas e Siglas}{loas}
+\chapter*{Lista de Abreviaturas e Siglas}
+
+\noindent A lista a seguir reúne, em ordem alfabética, as abreviaturas e siglas utilizadas neste trabalho, acompanhadas de seus respectivos significados.
+
+\vspace{\onelineskip}
+
+\begin{center}
+\begin{tabular}{@{}p{3.2cm}p{0.6\textwidth}@{}}
+\toprule
+\textbf{Abreviatura} & \textbf{Significado} \\
+\midrule
+AST & \textit{Abstract Syntax Tree} (Árvore sintática abstrata) \\
+CFG & \textit{Control Flow Graph} (Grafo de fluxo de controle) \\
+CVE & \textit{Common Vulnerabilities and Exposures} \\
+CVSS & \textit{Common Vulnerability Scoring System} \\
+CWE & \textit{Common Weakness Enumeration} \\
+HOFG & \textit{Heap Object Flow Graph} \\
+IR & \textit{Intermediate Representation} (Representação intermediária) \\
+LoC & \textit{Lines of Code} (Linhas de código) \\
+MAD & \textit{Memory allocation/deallocation} (Alocação e desalocação de memória) \\
+MSRC & \textit{Microsoft Security Response Center} \\
+NVD & \textit{National Vulnerability Database} \\
+SSA & \textit{Static Single Assignment} (Atribuição única estática)\\
+VSA & \textit{Value-Set Analysis} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\cleardoublepage
+
 
 % ---------------------------------------------------------------
 % SUMÁRIO
@@ -164,8 +206,10 @@
 \chapter{Introdução}
 \label{cap:introducao}
 
+Este capítulo introdutório está estruturado nas subseções \ref{sec:Contexto} Contexto, \ref{sec:Justificativa} Justificativa, \ref{sec:Hipotese} Hipótese e \ref{sec:Objetivos} Objetivos, abrangendo objetivo geral e objetivos específicos.
+
 \section{Contexto}
-\label{cap:Contexto}
+\label{sec:Contexto}
 
 Em um levantamento realizado pela \textit{Microsoft Security Response Center} (MSRC) realizado em 2019 \cite{MSRC2019},
 foi apurado que aproximadamente 70\% das vulnerabilidades corrigidas em softwares da multinacional entre o período de 2004 e 2018 
@@ -225,8 +269,8 @@ Para lidar com as dificuldades presentes pela aritmética de ponteiros e ser pos
 uma integração com o \textit{Value-Set Analysis} (VSA) \cite{Balakrishnan2007} poderia ser realizada. O VSA, técnica de interpretação abstrata originalmente aplicada para análise de executáveis, 
 tem o objetivo de encontrar uma aproximação segura para o conjunto de valores que cada objeto de dados pode armazenar em cada ponto de um programa. 
 \par
-Ao integrar VSA ao HOFG, seria possível acompanhar o endereço abstrato dos objetos alocados na memória \textit{Heap}, bem como estimar limites de intervalos que tais endereços podem assumir, 
-permitindo assim acompanhar as mudanças de estado dos objetos com mais profundidade, encontrando atribuições que possam, por sua vez, gerar vulnerabilidades de memória.
+Ao integrar o VSA ao HOFG, o mapeamento dos limites de intervalos de endereços abstratos na memória \textit{Heap} se torna possível, reduzindo a taxa de falsos positivos na detecção de vulnerabilidades comparado a análise baseada unicamente ao modelo HOFG padrão.
+
 
 \section{Objetivos}
 \label{sec:Objetivos}
@@ -256,16 +300,47 @@ O objetivo principal do trabalho é demonstrar a viabilidade da integração da 
 \chapter{Revisão Bibliográfica}
 \label{cap:revisao}
 
-A revisão bibliográfica deste artigo está estruturada nas subseções \ref{sec:referencial} Referencial teórico, contendo os principais conceitos, teorias e definições que constituem a base fundamental deste trabalho; \ref{sec:metodologia_pesquisa} Metodologia da pesquisa bibliográfica, abrangendo a forma como a pesquisa bibliográfica foi conduzida; 
-\ref{sec:fundamentos} Fundamentos, sendo a subseção que contém de forma detalhada conceitos técnicos que utilizados na busca dos objetivos; \ref{sec:metricas_de_avaliacao} Métricas de avaliação, detalhando como a solução proposta será avaliada e o que será levado em consideração; e, por fim, \ref{sec:trabalhos_relacionados} Trabalhos relacionados, subseção que contém breve análise de três artigos com objetivos similares, 
-destacando suas características, resultados obtidos e, principalmente, as distinções em relação a este trabalho.
+A revisão bibliográfica deste artigo está estruturada nas subseções \ref{sec:metodologia_pesquisa} Metodologia da pesquisa bibliográfica, abrangendo a forma como a pesquisa bibliográfica foi conduzida; 
+\ref{sec:referencial} Referencial, contendo os principais conceitos, teorias e definições que constituem a base fundamental deste trabalho; \ref{sec:metricas_de_avaliacao} Métricas de avaliação, detalhando como a solução proposta será avaliada e o que será levado em consideração; 
+e, por fim, \ref{sec:trabalhos_relacionados} Trabalhos relacionados, subseção que contém breve análise de três artigos com objetivos similares, destacando suas características, resultados obtidos e, principalmente, as distinções em relação a este trabalho.
+
 
 % ---------------------------------------------------------------
-\section{Referencial teórico}
+\section{Metodologia da pesquisa bibliográfica}
+\label{sec:metodologia_pesquisa}
+
+\par
+A pesquisa bibliográfica foi realizada primariamente no motor de busca Google Acadêmico (\textit{Google Scholar}), utilizando as seguintes strings de busca:
+
+\begin{itemize}
+\item \textit{"memory leak" AND "static analysis"}
+\item \textit{"memory leak" AND "dynamic analysis"}
+\item \textit{("memory safety" OR "memory leak" OR "memory corruption") AND ("empirical study" OR "quantitative analysis") AND "vulnerability"}
+\end{itemize}
+
+\par
+A exclusão de artigos foi guiada por critérios de inclusão e exclusão predefinidos. Foram considerados trabalhos publicados no período entre 2022 e 2026, primariamente em língua inglesa e que abordassem diretamente métodos de identificação de vulnerabilidades de memória.
+
+\par
+Após a busca inicial, técnica de triagem (\textit{screening}) foi empregada, consistindo na avaliação do título e do resumo de cada artigo obtido. Essa etapa resultou na seleção de 11 artigos, focados em métodos de análise para detecção dessas vulnerabilidades. 
+Dentre estes, o trabalho seminal referente ao modelo \textit{Heap Object Flow Graph} (HOFG) ganhou destaque por ter como foco a adaptação da estrutura para a detecção de vulnerabilidades de memória na linguagem C.
+
+\par 
+Em seguida, foram mapeados os trabalhos seminais referenciadas pelos autores. Essa etapa de pesquisa em cadeia (\textit{snowballing}), totalizando 24 artigos. Contudo, com o modelo HOFG estabelecido como base estrutural, a etapa de leitura recebeu um filtro de exclusão mais restrito, sendo considerados e lidos artigos com ligação direta a base estrutural.
+
+\par
+Por fim, a partir de necessidades conceituais levantadas durante a leitura de tais artigos, busca complementar foi conduzida, utilizando como referência a literatura clássica, livros técnicos e documentações oficiais com o objetivo de obter definições estruturais necessárias.
+% ---------------------------------------------------------------
+
+
+\section{Referencial}
 \label{sec:referencial}
 
+Para fundamentar o desenvolvimento do analisador proposto, esta seção estabelece os alicerces teóricos da pesquisa. O texto está estruturado a partir dos conceitos de Memória \textit{Heap} (\ref{subsec:HEAP}) e Análise Estática (\ref{subsec:analise_estatica}), 
+avançando para a infraestrutura de compilação LLVM (\ref{subsec:llvm}), e a classificação de Vulnerabilidades de Memória (\ref{subsec:vulnerabilidades_memoria}). Por fim, são detalhados os dois modelos centrais que embasam a solução: \textit{Heap Object Flow Graph} (\ref{subsec:HOFG}) e \textit{Value-Set Analysis} (\ref{subsec:VSA}).
+
 \subsection{Memória \textit{Heap}}
-\label{sec:HEAP}
+\label{subsec:HEAP}
 
 A memória \textit{Heap} é uma área da memória virtual de um processo utilizada para a alocação dinâmica de memória. Tal região tem início logo após a área de dados não inicializados do programa e cresce para cima, 
 em direção a endereços de memória mais altos. Para cada processo, o \textit{kernel} mantém uma variável brk (sendo pronunciada \textit{break}, ou quebra) que aponta para o topo da \textit{Heap} \cite{Bryant2010}. 
@@ -274,30 +349,148 @@ Um bloco alocado é reservado para uso de forma explícita pela aplicação, per
 E, por sua vez, um bloco livre está disponível para ser alocado, e permanece assim até que, de forma explícita, seja alocado através de uma nova requisição de alocação feita pela aplicação. O fato de que, por vezes, o tamanho exato de certas estruturas de dados que 
 serão utilizados em um programa só se tornam conhecidos até que o mesmo seja executado se torna o principal motivo para a utilização da alocação dinâmica de memória e, consequentemente, da memória \textit{Heap} \cite{Bryant2010}.
 
+
+\begin{figure}[htpb]
+\centering
+\caption{Função em C utilizada como base para as representações intermediárias.}
+\label{fig:codigo_exemplo}
+\begin{minted}[linenos, frame=single, fontsize=\small]{c}
+int exemplo() {
+
+    int i = 0;
+    int v = 10;
+
+    do { 
+        if (i % 2 == 0) {
+            i = i + 1;
+        }
+        else {
+            i = i * 2;
+        }
+    } while (i < v);
+
+    return i;
+}
+\end{minted}
+\legend{Fonte: Elaborado pelo autor (2026)}
+\end{figure}
+
 \subsection{Análise estática}
+\label{subsec:analise_estatica}
 
 \par
-A análise estática é uma técnica para obter informações sobre o comportamento em tempo de execução de um programa, porém sem a necessidade de executar o programa. Isso ocorre pois os métodos de análise estática exploram o 
-comportamento do programa a partir de abstrações e aproximações para mapear o espaço de estados do programa, dessa forma detectando comportamentos tais como vulnerabilidades e fluxos inválidos para qualquer entrada possível.
+A análise estática de programas é definida como a arte de raciocinar sobre o comportamento de programas sem de fato executá-los. O seu objetivo principal é responder de forma automatizada perguntas sobre os possíveis comportamentos de um código. 
+Isto é útil não apenas em otimizações realizadas por um compilador para produzir código binário eficiente, mas também para detecção automatizada de erros e outras ferramentas que podem ajudar programadores. Um analisador estático de programas é um programa que faz inferências sobre o comportamento de outros programas \cite{spa}.
+
+O código-fonte escrito em C apresentado na figura \ref{fig:codigo_exemplo} servirá como exemplo para ilustrar as transformações abordadas nesta seção. Serão obtidas as suas representações
+intermediárias: a Árvore sintática abstrata (AST), o Grafo de fluxo de controle (CFG) e, por fim, a forma de Atribuição Única Estática (SSA).
 
 \subsubsection{Árvore sintática abstrata (AST)}
+
+\begin{figure}[htpb]
+\centering
+\caption{Código presente na figura \ref{fig:codigo_exemplo} na forma AST de baixa fidelidade}
+\label{fig:codigo_cfg}
+\includegraphics[width=\textwidth]{ast_exemplo.pdf}
+\legend{Fonte: Elaborado pelo autor (2026)}
+\end{figure}
+
 
 Segundo \citeonline{Compilers2009}, as árvores sintáticas abstratas (ASTs), ou simplesmente árvores sintáticas, nas quais cada nó interno representa um operador da expressão, e seus nós filhos representam os respectivos operandos.
 Além disso, as ASTs se assemelham às árvores de derivação até certo nível, diferenciando-se pelo fato de que os nós interiores da AST representam construções de programação, ao passo que na árvore de derivação os nós 
 interiores representam símbolos não-terminais. Outra diferença é a ausência de símbolos não-terminais auxiliares, tais como aqueles que representam termos, fatores, ou outras variações de expressões, na AST. 
 Essa falta ocorre pois tais detalhes sintáticos são desnecessários para a fase de tradução, resultando em uma representação mais condensada e focada na semântica do código-fonte.
 
+\par
+A figura \ref{fig:codigo_cfg} ilustra a representação AST da função exemplo exibida na figura \ref{fig:codigo_exemplo}. Por ser uma representação de baixa fidelidade, a árvore foca na estrutura lógica das operações, abstraindo a pontuação original do código-fonte. 
+A raiz ramifica-se sequencialmente para as operações principais: as declarações das variáveis \texttt{i} e \texttt{v}, a estrutura de repetição \texttt{do-while}, declarando seu corpo e a sua condição de parada \texttt{<}, e, por fim, o nó de retorno da função.
+
+\subsubsection{Grafo de fluxo de controle (CFG)}
+
+\begin{figure}[htpb]
+\centering
+\caption{Código presente na figura \ref{fig:codigo_exemplo} em sua forma CFG}
+\label{fig:codigo_cfg}
+\includegraphics[width=0.8\textwidth]{cfg_exemplo.pdf}
+\legend{Fonte: Elaborado pelo autor (2026)}
+\end{figure}
+
+Um grafo de fluxo de controle (\textit{Control Flow Graph}, ou CFG) é um grafo direcionado, no qual seus vértices correspondem a declarações (instruções) e arestas representam possíveis caminhos do fluxo de controle durante a execução. Para simplificar as representações e algoritmos que operam sobre o grafo, 
+é assumido por convenção que todo CFG possui um único ponto de entrada ($entry$) e um único ponto de saída ($exit$), os quais podem ser compreendidos como comandos vazios (\textit{no-ops}). Além disso, se $v$ é um vértice presente em um CFG, então $pred(v)$ denota o conjunto de vértices predecessores e $succ(v)$ o conjunto de vértices sucessores. 
+Para programas totalmente normalizados, cada vértice corresponde a apenas uma operação \cite{spa}. 
+
+\par
+O emprego de um CFG se dá pelo fornecimento de uma representação de código que mantém a ordem em que as instruções são executadas, criando contraste com ASTs, que representam a estrutura sintática do programa enquanto ignoram a ordem de execução dos comandos. Por fornecer tal ordem de execução de instruções, 
+o CFG se torna adequado para análises sensíveis ao fluxo (\textit{flow-sensitive analysis}), especialmente a análise de fluxo de dados (\textit{dataflow analysis}) \cite{spa}.
+
+\par
+Os CFGs podem ser construídos de maneira indutiva para as diferentes estruturas de uma linguagem. Comandos em sequência são unidos, eliminando a saída do primeiro e a entrada do segundo, bem como estruturas de decisão (\textit{if-else}) e laços de repetição (\textit{while}) dividem o fluxo em arestas de ramificação, 
+comumente rotuladas com as condições verdadeiro ou falso \cite{spa}.
+
+\par
+A figura \ref{fig:codigo_cfg} apresenta o CFG correspondente à execução da função \texttt{exemplo}, presente na figura \ref{fig:codigo_exemplo}. A partir do nó de entrada, o fluxo sequencial passa pelas declarações iniciais até atingir a condicional \texttt{if(i \% 2 == 0)}. 
+As arestas direcionadas ilustram as duas ramificações mutuamente exclusivas que convergem para a avaliação do laço \texttt{while (i < v)}. Uma aresta de retorno demonstra o ciclo do laço quando a condição é mantida como verdadeira, ao passo que o caminho alternativo conduz à instrução de retorno e ao término da função.
+
+\subsubsection{Níveis de sensibilidade da análise estática}
+
+Os níveis de sensibilidade são características que definem como uma ferramenta de análise estática modela e percorre o código-fonte. No que diz respeito à ordem de execução, as análises podem ser categorizadas em duas abordagens principais \cite{spa}:
+
+\par
+\textbf{Análise sensível ao fluxo}, (\textit{Flow-Sensitive}): Abordagem que leva em consideração a ordem em que as instruções de um programa são executadas, a partir disso, se torna capaz de distinguir entre os diferentes pontos de um programa. 
+Por exemplo, se uma variável $a$ recebe uma atribuição na linha $2$ e outra atribuição na linha $4$, a análise sensível ao fluxo é capaz de reconhecer que uma leitura realizada na linha $3$ dependerá estritamente do valor definido na linha $2$, e não da linha $4$ \cite{spa}.
+
+\par
+\textbf{Análise insensível ao fluxo}, (\textit{Flow-Insensitive}): Abordagem que ignora a ordem de execução das instruções de um programa. Tal análise enxerga o código como um conjunto não ordenado de comandos. Por conta disso, tais análises frequentemente utilizam ASTs como representação base, 
+já que tal estrutura capta a sintaxe global do programa, sem haver preocupação com o sequenciamento temporal do fluxo. Seu uso esta em métodos que não dependem da cronologia de um programa para realizar sua análise, tais como a análise de tipos \cite{spa}.
+
+
 \subsubsection{Forma de atribuição única estática (SSA)}
+
+\begin{figure}[htpb]
+\centering
+\caption{Código presente na figura \ref{fig:codigo_exemplo} adaptado para a forma SSA de forma didática}
+\label{fig:codigo_ssa}
+\begin{minted}[linenos, frame=single, fontsize=\small]{c}
+int exemplo() {
+    i1 = 0;
+    v1 = 10;
+
+    do {
+        i2 = phi(i1, i5); 
+
+        if (i2 % 2 == 0) {
+            i3 = i2 + 1;
+        } 
+        else {
+            i4 = i2 * 2;
+        }
+
+        i5 = phi(i3, i4);
+
+    } while (i5 < v1);
+
+    return i5;
+}
+\end{minted}
+\legend{Fonte: Elaborado pelo autor (2026)}
+\end{figure}
+
 
 O SSA (\textit{Static Single Assignment}) é uma forma de representação de código intermediário, tem como ponto-chave as características de que cada definição de variável possui um nome distinto, e de que cada uso refere-se a apenas uma única definição, 
 sendo essas também as duas restrições da representação, significando que, caso um programa atenda tais restrições, tal programa estará em sua forma SSA. Para garantir essa singularidade, variáveis que sofrem múltiplas atribuições no código-fonte são renomeadas, 
 sendo criadas versões distintas para cada nova atribuição (por exemplo, $v1$, $v2$, $v3$) \cite{Singer2022}. 
+
 \par
 Além disso, em programas com desvios do fluxo de controle, contendo blocos condicionais e laços de repetição, diferentes versões da mesma variável podem chegar ao mesmo ponto de convergência no 
 Grafo de Fluxo de Controle (CFG). São inseridas então, nesses pontos de junção, as chamadas funções $\phi$ (\textit{phi functions}), possuindo $N$ argumentos correspondentes aos $N$ caminhos do fluxo de controle convergentes, 
 e seleciona a versão correta da variável com base no caminho de execução tomado pelo programa. Sendo criada inicialmente para facilitar o desenvolvimento de transformações de programa de alto nível, 
 a forma ganhou popularidade pelas suas propriedades que permitem a simplificação de algoritmos e a redução da complexidade computacional das análises de fluxo de dados. Atualmente, 
 é amplamente utilizada por compiladores de código aberto e comerciais, como é o caso do LLVM, sendo uma estrutura fundamental para a análise estática de programas \cite{Singer2022}.
+
+\par
+O trecho de código, presente na figura \ref{fig:codigo_ssa}, ilustra uma adaptação didática da função exemplo presente na figura \ref{fig:codigo_exemplo} para a forma SSA. Para satisfazer as propriedades da representação SSA, a variável original \texttt{i} é 
+versionada em múltiplas instâncias independentes. Além disso, o código exibe o uso de funções $\phi$ em dois pontos de convergência do fluxo: no início do laço \texttt{do-while}, para mesclar o valor inicial da variável com o valor propagado pela iteração anterior (\texttt{i2 = phi(i1, i5)}), 
+e logo após a condicional \texttt{if-else}, para unificar as ramificações exclusivas da execução (\texttt{i5 = phi(i3, i4)}) antes da verificação para continuidade do laço.
 
 \subsubsection{Limitações da análise estática em códigos-fonte}
 
@@ -354,11 +547,11 @@ Num compilador moderno, três componentes principais são aplicados \cite{Lattne
 
 \begin{itemize}
 \item
-O front end, responsável por analisar o código-fonte, checar erros e construir a árvore de sintaxe abstrata (AST) específica para a linguagem em questão.
+O \textit{front end}, responsável por analisar o código-fonte, checar erros e construir a AST específica para a linguagem em questão.
 \item
 O otimizador, responsável por realizar transformações de código numa tentativa de melhorar o tempo de execução do código, realizando, por exemplo, remoções de itens redundantes que seriam computados.
 \item
-O back end, também conhecido como o gerador de código. Responsável por mapear o código para o conjunto de instruções da arquitetura alvo. Dentre os itens comumente encontrados no back end, estão inclusos a seleção de instruções, alocação de registradores e o escalonamento de instruções.
+O \textit{back end}, também conhecido como o gerador de código. Responsável por mapear o código para o conjunto de instruções da arquitetura alvo. Dentre os itens comumente encontrados no back end, estão inclusos a seleção de instruções, alocação de registradores e o escalonamento de instruções.
 \end{itemize}
 
 \par 
@@ -436,13 +629,13 @@ Processos em nível de núcleo (\textit{Kernel-land Process}), sendo o caso com 
 Com o título de liberação dupla (\textit{double free}), ocorre quando o mesmo endereço de memória é liberado mais de uma vez. Isso acontece pois, quando o programa chama a função de liberação 
 (como a função \textit{free()} da biblioteca stdlib, na linguagem C) utilizando o mesmo endereço de memória como argumento, a estrutura de dados responsável por gerenciar a heap pode ser corrompida, permitindo assim que um 
 usuário malicioso escreva em posições arbitrárias de memória. O impacto de tal corrupção pode causar desde a falha abrupta do programa até a alteração do fluxo de execução. 
-Ao sobrescrever registradores ou endereços específicos de memória, um atacante pode alterar o programa, sendo capaz de injetar e executar códigos arbitrários, resultando, por exemplo, na escalada de privilégios sobre o sistema em um emulador de terminal (OWASP, 2026).
+Ao sobrescrever registradores ou endereços específicos de memória, um atacante pode alterar o programa, sendo capaz de injetar e executar códigos arbitrários, resultando, por exemplo, na escalada de privilégios sobre o sistema em um emulador de terminal \cite{Owasp2026_415}.
 
 \subsubsection{CWE-416}
 \label{subsec:cwe416}
 
 O \textit{Use After Free} é a referenciação de um endereço de memória que foi desalocado, tal ato gera consequências imprevisíveis no sistema, com resultados que variam desde uma falha abrupta do programa até a execução de códigos e comandos arbitrários, 
-dependendo do contexto e do momento que a vulnerabilidade ocorre. A reutilização de um endereço desalocado, segundo o \textit{Open Web Application Security Project} (OWASP, 2026), é a forma mais simples de corrupção de dados, visto que, neste cenário, 
+dependendo do contexto e do momento que a vulnerabilidade ocorre. A reutilização de um endereço desalocado, segundo a \citeonline{Owasp2026_416}, é a forma mais simples de corrupção de dados, visto que, neste cenário, 
 o bloco de memória anteriormente liberado pode ser realocado para um novo objeto válido ao longo da execução do programa. Com isso o ponteiro original ainda aponta para esse endereço (se tornando um ponteiro pendente, ou \textit{dangling pointer}), 
 qualquer alteração feita através dele corromperá os dados da nova alocação legítima, gerando a falha imprevisível.
 
@@ -455,41 +648,8 @@ Criado em 1999 pela corporação MITRE, o programa CVE (\textit{Common Vulnerabi
 A Lista CVE (\textit{CVE List}) atua como um dicionário onde cada entrada documenta uma falha real detectada em uma versão específica de um software. Após a confirmação, a vulnerabilidade recebe um identificador único composto pelo ano de relato ou atribuição, seguido por um sequencial numérico. 
 Após o processo de adição de uma entrada ao dicionário, plataformas como o \textit{National Vulnerability Database} (NVD) incrementam o registro com dados críticos, como descrição técnica, índice de severidade metrificado pela CVSS (\textit{Common Vulnerability Scoring System}) e causa raiz da falha proveniente da Lista CWE \cite{Cve2026}.
 
-% ---------------------------------------------------------------
-\section{Metodologia da pesquisa bibliográfica}
-\label{sec:metodologia_pesquisa}
-
-\par
-A pesquisa bibliográfica foi realizada primariamente no motor de busca Google Acadêmico (\textit{Google Scholar}), utilizando as seguintes strings de busca:
-
-\begin{itemize}
-\item \textit{"memory leak" AND "static analysis"}
-\item \textit{"memory leak" AND "dynamic analysis"}
-\item \textit{("memory safety" OR "memory leak" OR "memory corruption") AND ("empirical study" OR "quantitative analysis") AND "vulnerability"}
-\end{itemize}
-
-\par
-A exclusão de artigos foi guiada por critérios de inclusão e exclusão predefinidos. Foram considerados trabalhos publicados no período entre 2022 e 2026, primariamente em língua inglesa e que abordassem diretamente métodos de identificação de vulnerabilidades de memória.
-
-\par
-Após a busca inicial, técnica de triagem (\textit{screening}) foi empregada, consistindo na avaliação do título e do resumo de cada artigo obtido. Essa etapa resultou na seleção de 11 artigos, focados em métodos de análise para detecção dessas vulnerabilidades. 
-Dentre estes, o trabalho seminal referente ao modelo \textit{Heap Object Flow Graph} (HOFG) ganhou destaque por ter como foco a adaptação da estrutura para a detecção de vulnerabilidades de memória na linguagem C.
-
-\par 
-Em seguida, foram mapeados os trabalhos seminais referenciadas pelos autores. Essa etapa de pesquisa em cadeia (\textit{snowballing}), totalizando 24 artigos. Contudo, com o modelo HOFG estabelecido como base estrutural, a etapa de leitura recebeu um filtro de exclusão mais restrito, sendo considerados e lidos artigos com ligação direta a base estrutural.
-
-\par
-Por fim, a partir de necessidades conceituais levantadas durante a leitura de tais artigos, busca complementar foi conduzida, utilizando como referência a literatura clássica, livros técnicos e documentações oficiais com o objetivo de obter definições estruturais necessárias.
-
-
-% ---------------------------------------------------------------
-
-\section{Fundamentos}
-\label{sec:fundamentos}
-
-
 \subsection{\textit{Heap Object Flow Graph} (HOFG)}
-\label{sec:HOFG}
+\label{subsec:HOFG}
 
 O \textit{Heap Object Flow Graph} é uma representação de programa baseada nos blocos de memória alocados na \textit{Heap}. Os vértices de tal grafo são constituídos pelas variáveis do programa que atuam como ponteiro para esses blocos de memória. Para converter um programa em sua representação HOFG, 
 é necessário que seja primeiramente convertido para a forma SSA. Tal feito é necessário pois a forma SSA permite a visualização de forma explícita da definição e usos de cada variável, auxiliando assim, na distinção entre as suas atribuições e seus usos \cite{MadhavC2023}.
@@ -617,15 +777,53 @@ número máximo de arestas também pode ser delimitado superiormente por $O(N)$,
 
 
 \subsection{\textit{Value-Set Analysis}}
+\label{subsec:VSA}
 
 O \textit{Value-Set Analysis} (VSA) é uma técnica de interpretação abstrata de código executável, que tem como objetivo encontrar uma aproximação segura para o conjunto de valores que cada objeto de 
-dados pode armazenar em cada ponto de um programa \cite{Balakrishnan2007}. O VSA possui similaridades com o problema de análise de ponteiros (\textit{pointer-analysis}), frequentemente estudado em análises de 
+dados pode armazenar em cada ponto de um programa \cite{Balakrishnan2007}. A interpretação abstrata atua, neste caso, como uma base matemática sólida que relaciona a semântica formal do programa com o modelo de análise, 
+garantindo matematicamente a correção (\textit{soundness}) e a precisão dessas aproximações \cite{spa}.
+
+\par
+O VSA possui similaridades com o problema de análise de ponteiros (\textit{pointer-analysis}), frequentemente estudado em análises de 
 programas escritos em linguagens de alto nível. Enquanto a análise de ponteiros tradicional determina uma sobreaproximação (\textit{over-approximation}) de conjunto de variáveis cujos endereços uma determinada variável 
-pode conter, o VSA atua determinando uma sobreaproximação do conjunto de endereços que cada objeto de dados pode conter em cada ponto do programa. 
+pode conter, o VSA atua determinando uma sobreaproximação do conjunto de endereços que cada objeto de dados pode conter em cada ponto do programa \cite{Balakrishnan2007}. 
 \par
 Como consequência, os resultados do VSA podem ser utilizados para 
 identificar quais \textit{a-locs} (\textit{abstract locations}) estão contidos nos endereços de um determinado \textit{a-loc}. Por outro lado, o VSA também possui características de análises estáticas numéricas. Além de rastrear endereços, 
 o algoritmo determina uma sobreaproximação do conjunto de valores inteiros que cada objeto de dados pode assumir ao longo da execução \cite{Balakrishnan2007}.
+
+\subsubsection{Regiões de memória (\textit{Memory-Regions})}
+
+Em programas compilados, modelar a memória como um vetor plano de bytes apresenta limitações severas para a análise \cite{Balakrishnan2007}:
+\begin{itemize}
+\item 
+Pode se tornar impossível determinar endereços de memória específicos para certos blocos de memória, como endereços alocados a memória \textit{Heap} via \texttt{malloc}. 
+
+\item
+Endereços da pilha de execução são reutilizados ao longo da execução do programa, significando que, uma determinada área da pilha será utilizada por diferentes procedimentos (tais como funções) em diferentes momentos da execução. Por isso, a cada instrução um específico endereço de memória pode ser ambíguo.
+\end{itemize}
+
+\par
+Para que tais problemas sejam contornados, o espaço de endereçamento do programa é dividido em áreas independentes e não sobrepostas, referenciadas como regiões de memória (\textit{memory-regions}) \cite{Balakrishnan2007}.
+
+\par
+Cada região de memória representa um grupo de localizações que possui propriedades similares em tempo de execução. Cada byte (abstrato) em uma região de memória representa um conjunto de endereços de memória concretos. Para um programa, existem três tipos de regiões: 
+A $(1)$ região global (\textit{global-region}), para endereços de memória que armazenam dados globais inicializados e não inicializados. $(2)$ \textit{AR-Regions}, cada um contendo a localização dos ARs (\textit{Activation Records}) de um procedimento em particular. 
+E, por fim, $(3)$ \textit{malloc-regions}, cada um dos quais contém os endereços alocados em um local de \texttt{malloc} em específico \cite{Balakrishnan2007}.
+
+\subsubsection{\textit{Abstract Locations} (\textit{A-Locs})}
+
+Regiões de memória provém uma forma de resumir as informações sobre o conjunto de endereços concretos, porém por si só não disponibilizam uma representação para variáveis presentes no código-fonte do programa. 
+Isso ocorre pois, em executáveis, tais variáveis provenientes do código-fonte não existem, sendo necessária a construção de entidades semelhantes a tais variáveis a partir do executável. 
+A essas entidades com semelhança a variáveis é atribuída a nomenclatura \textit{a-loc} (para "\textit{abstract location}", ou localização abstrata) \cite{Balakrishnan2007}.
+
+\par
+Cada \textit{a-loc} identificado é mapeado a uma tripla \texttt{(rgn, off, size)}, na qual o \textit{rgn} representa a região de memória pertencente àquele \textit{a-loc}, o \texttt{off} é a posição inicial do deslocamento 
+do \textit{a-loc} dentro do \texttt{rgn}, bem como o \texttt{size} é o tamanho de um \textit{a-loc}. O começo do deslocamento de um \textit{a-loc} a em uma região \texttt{rgn} é denotada por \texttt{offset(rgn, a)} \cite{Balakrishnan2007}. 
+
+\par
+Além disso, o tamanho (\texttt{size}) pode não ser conhecido estaticamente, como os blocos alocados dinamicamente na memória \textit{Heap}, caso em que o tamanho assume o valor infinito ($\infty$). 
+Cabe ressaltar que nem todos os \textit{a-locs} surgem com declarações explícitas, alguns são gerados sinteticamente pela análise, como os \textit{a-locs} estendidos, que representam parâmetros e dados empurrados implicitamente para a pilha de execução via instruções de \texttt{push} \cite{Balakrishnan2007}.
 
 \subsubsection{\textit{Value-Set}}
 
@@ -661,6 +859,9 @@ Além disso, um \textit{Value-Set} é capaz de representar tanto um conjunto de 
 \section{Métricas de Avaliação}
 \label{sec:metricas_de_avaliacao}
 
+Esta seção detalha a metodologia de avaliação do analisador estático proposto. Divide-se em duas frentes: a verificação de precisão, 
+realizada por meio do Juliet Test Suite (Subseção \ref{sub:juliet_test_suite}), e a mensuração de desempenho em cenários reais de software, através de casos aplicados (Subseção \ref{sub:casos_aplicados}).
+
 \subsection{Juliet Test Suite}
 \label{sub:juliet_test_suite}
 
@@ -682,8 +883,8 @@ Os CWEs considerados serão:
 \item CWE-416
 \end{itemize}
 
-\subsection{Estudos de caso}
-\label{sub:estudos_de_caso}
+\subsection{Casos aplicados}
+\label{sub:casos_aplicados}
 
 \par
 Além dos casos pertencentes ao \textit{Juliet Test Suite}, que têm como objetivo validar a precisão de detecção do analisador, a avaliação engloba ainda a análise do código-fonte de projetos de código aberto. Essa etapa visa mensurar o custo computacional da própria ferramenta, 
@@ -703,7 +904,12 @@ Os projetos escolhidos foram:
 \section{Trabalhos relacionados}
 \label{sec:trabalhos_relacionados}
 
+Esta seção detalha três artigos fundamentais para o escopo desta pesquisa: o Trabalho 1 (\ref{sub:trabalho_1}), artigo seminal que propõe a estrutura HOFG original, o Trabalho 2 (\ref{sub:trabalho_2}), 
+que apresenta o LeakGuard, ferramenta com arquitetura escalável e método automático para detecção de funções de alocação e desalocação (MAD \textit{functions}), e o Trabalho 3 (\ref{sub:trabalho_3}), 
+que apresenta o Infer, ferramenta que utiliza análise composicional para detecção de vulnerabilidades.
+
 \subsection{Trabalho 1: \textit{Memory leak detection using Heap Object Flow Graph} (HOFG)}
+\label{sub:trabalho_1}
 
 O artigo que apresenta a representação de programas HOFG, apresenta também o \textit{HOFG-Analyser}, um analisador de código estático baseado nessa estrutura para a detecção de vazamentos de memória. 
 A ferramenta foi implementado sobre o LLVM \textit{framework} versão 12 e o compilador Clang 3.8. Conforme destacado pelos próprios autores, o analisador assume certas concessões em sua corretude (\textit{unsound trade-offs}), de forma similar como ocorre em abordagens anteriores \cite{MadhavC2023}.
@@ -722,6 +928,7 @@ sendo calculadas através do VSA. Logo, em uma operação como $q=p+1$, o VSA te
 Com isso, a integração de HOFG e VSA atuaria como um filtro, capaz de reduzir a imprecisão da análise realizada pelo \textit{HOFG-Analyser}.
 
 \subsection{Trabalho 2: \textit{LeakGuard: Detecting Memory Leaks Accurately and Scalably}}
+\label{sub:trabalho_2}
 
 O \textit{LeakGuard} tem como objetivo a detecção de vazamentos de memória de forma escalável e precisa, possui fluxo de análise dividido em quatro partes \cite{LeakGuard2025}:
 
@@ -741,6 +948,7 @@ de ponteiros se torna impreciso, pois as condições reais de atribuições e op
 Em contraste, o \textit{LeakGuard} realiza uma análise de fluxo de dados de baixo para cima, sensível ao caminho e ao campo (\textit{field-sensitive}), permitindo rastrear com precisão operações de memória aninhadas e identificar se as alocações dependem de parâmetros condicionais em tempo de execução \cite{LeakGuard2025}.
 
 \subsection{Trabalho 3: \textit{Infer - An Automatic Program Verifier for Memory Safety of C Programs}}
+\label{sub:trabalho_3}
 
 \textit{Infer} é uma ferramenta comercial avançada voltada para verificação de segurança de memória de programas escritos em C. Realiza uma análise profunda de memória (\textit{deep-heap analysis}) sem exigir anotações prévias ou modificações por parte do programador, permitindo a realização de análises de forma automatizada. Possui como base primária dois conceitos centrais, a bi-abdução (\textit{bi-abduction}), e a análise composicional \cite{Infer2011}.
 
@@ -841,7 +1049,7 @@ O cronograma a seguir apresenta, no formato de diagrama de Gantt, as atividades 
         \ganttbar{Leitura de arquivos}{4}{6} \\
         \ganttbar{Conversão para HOFG-VSA}{7}{8} \\
         \ganttbar{Algoritmo de poda}{9}{9} \\
-        \ganttbar{Geração de alertas}{10}{10} \\
+        \ganttbar{Geração de alertas}{10}{11} \\
         \ganttmilestone{Protótipo funcional}{11} \\
 
         % Grupo 3: Testes e Finalização
@@ -851,6 +1059,16 @@ O cronograma a seguir apresenta, no formato de diagrama de Gantt, as atividades 
         \ganttbar{Validação sob projetos}{14}{14} \\
         \ganttbar{Redação final do TCC2}{13}{16} \\
         \ganttmilestone{Entrega final}{16} \\
+
+        \ganttlink{elem3}{elem4}
+        \ganttlink{elem4}{elem5}
+        \ganttlink{elem5}{elem6}
+        \ganttlink{elem6}{elem7}
+        \ganttlink{elem7}{elem8}
+        \ganttlink{elem8}{elem9}
+        \ganttlink{elem10}{elem11}
+        \ganttlink{elem11}{elem12}
+
     \end{ganttchart}
     \legend{Fonte: Elaborado pelo autor (2026)}
 \end{figure}
